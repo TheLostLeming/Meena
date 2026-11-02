@@ -87,7 +87,7 @@
     <h1>Strength & Performance</h1>
     <span style="font-size: 0.8rem; color: var(--text-muted);">Personal Training Portal</span>
   </div>
-  <div id="sync-status" class="status-badge status-offline">● Offline</div>
+  <div id="sync-status" class="status-badge status-offline">● Connecting...</div>
 </header>
 
 <div class="nav-tabs">
@@ -264,10 +264,14 @@
     statusEl.innerText = (online ? "🟢 " : "🔴 ") + text;
   }
 
+  // Safe Regional Initialization
   try {
     if (typeof firebase !== 'undefined' && firebase.initializeApp) {
-      firebase.initializeApp(firebaseConfig);
-      db = firebase.database();
+      if (!firebase.apps.length) {
+        firebase.initializeApp(firebaseConfig);
+      }
+      // Explicitly specify the Belgium database instance URL
+      db = firebase.database(firebaseConfig.databaseURL);
       
       db.ref(".info/connected").on("value", snap => {
         if (snap.val() === true) {
@@ -276,10 +280,12 @@
           setOnlineStatus(false, "Connecting...");
         }
       });
+    } else {
+      setOnlineStatus(false, "SDK Blocked");
     }
   } catch (e) {
-    console.warn("Firebase error:", e);
-    setOnlineStatus(false, "Offline");
+    console.warn("Firebase startup error:", e);
+    setOnlineStatus(false, e.code || "Offline");
   }
 
   let currentWeek = 1;
@@ -320,7 +326,12 @@
         appState = data;
         updateUI();
       }
-    }).catch(err => console.warn("Initial load notice:", err));
+    }).catch(err => {
+      console.warn("Initial load notice:", err);
+      if (err.message && err.message.includes("permission_denied")) {
+        setOnlineStatus(false, "Rules Locked");
+      }
+    });
 
     db.ref("client_training_data").on("value", snapshot => {
       const data = snapshot.val();
@@ -330,7 +341,7 @@
       }
     }, err => {
       console.warn("Live sync error:", err);
-      setOnlineStatus(false, "URL Mismatch");
+      setOnlineStatus(false, "Sync Denied");
     });
   }
 
@@ -412,4 +423,188 @@
     ['mon', 'wed', 'fri', 'sat'].forEach(day => {
       const isDone = getData("session_" + currentWeek + "_" + day) === '1';
       const btn = document.getElementById("btn-" + day);
-      if (btn) btn.classList.
+      if (btn) btn.classList.toggle('done', isDone);
+    });
+
+    const wedNote = document.getElementById('notes-wed');
+    if (wedNote && document.activeElement !== wedNote) {
+      wedNote.value = getData("note_" + currentWeek + "_wed");
+    }
+
+    const satNote = document.getElementById('notes-sat');
+    if (satNote && document.activeElement !== satNote) {
+      satNote.value = getData("note_" + currentWeek + "_sat");
+    }
+
+    let doneCount = 0;
+    ['mon', 'wed', 'fri', 'sat'].forEach(d => {
+      if (getData("session_" + currentWeek + "_" + d) === '1') doneCount++;
+    });
+    const statEl = document.getElementById('completion-stat');
+    if (statEl) statEl.innerText = doneCount + "/4 Done";
+
+    renderWorkout();
+  }
+
+  function getActiveExercises(workoutKey) {
+    const baseList = workouts[workoutKey].exercises;
+    const savedOrder = getData("order_" + workoutKey);
+    if (savedOrder && Array.isArray(savedOrder)) {
+      const reordered = savedOrder.map(name => baseList.find(e => e.name === name)).filter(Boolean);
+      if (reordered.length === baseList.length) {
+        return reordered;
+      }
+    }
+    return baseList;
+  }
+
+  function moveExercise(workoutKey, index, direction) {
+    const list = [...getActiveExercises(workoutKey)];
+    const target = index + direction;
+    if (target < 0 || target >= list.length) return;
+
+    const temp = list[index];
+    list[index] = list[target];
+    list[target] = temp;
+
+    syncData("order_" + workoutKey, list.map(e => e.name));
+    renderWorkout();
+  }
+
+  function renderWorkout() {
+    const isWorkoutA = (currentWeek % 2 !== 0);
+    const workoutKey = isWorkoutA ? 'A' : 'B';
+    const workout = workouts[workoutKey];
+    const container = document.getElementById('workout-container');
+    if (!container) return;
+
+    const exerciseList = getActiveExercises(workoutKey);
+
+    let html = '<div class="card-title"><div>' +
+      '<span>' + workout.name + '</span>' +
+      '<span style="font-size:0.75rem; color:var(--text-muted); display:block; font-weight:normal; margin-top:4px;">' +
+      'Week ' + currentWeek + ': Focus on solid form & strict rest' +
+      '</span></div></div>';
+
+    exerciseList.forEach((ex, exIdx) => {
+      const exSlug = ex.name.replace(/[^a-zA-Z0-9]/g, '_').toLowerCase();
+
+      html += '<div class="exercise-box">' +
+        '<div class="ex-header">' +
+          '<div class="ex-title-wrap">' +
+            '<span class="ex-name">' + ex.name + '</span>' +
+            '<span class="ex-meta">' + ex.sets + ' × ' + ex.reps + '</span>' +
+          '</div>' +
+          '<div class="move-btn-group">' +
+            (exIdx > 0 ? '<button type="button" class="move-btn" onclick="moveExercise(\'' + workoutKey + '\', ' + exIdx + ', -1)">▲</button>' : '') +
+            (exIdx < exerciseList.length - 1 ? '<button type="button" class="move-btn" onclick="moveExercise(\'' + workoutKey + '\', ' + exIdx + ', 1)">▼</button>' : '') +
+          '</div>' +
+        '</div>';
+
+      for (let s = 1; s <= ex.sets; s++) {
+        const wtKey = "w_" + currentWeek + "_" + exSlug + "_s" + s + "_wt";
+        const rpKey = "w_" + currentWeek + "_" + exSlug + "_s" + s + "_rp";
+        const doneKey = "w_" + currentWeek + "_" + exSlug + "_s" + s + "_done";
+
+        const savedWeight = getData(wtKey);
+        const savedRep = getData(rpKey);
+        const isDone = getData(doneKey) === '1';
+
+        html += '<div class="set-row">' +
+          '<span class="set-num">Set ' + s + '</span>' +
+          '<input type="text" class="log-input" placeholder="kg" value="' + savedWeight + '" onchange="syncData(\'' + wtKey + '\', this.value)">' +
+          '<input type="text" class="log-input" placeholder="reps" value="' + savedRep + '" onchange="syncData(\'' + rpKey + '\', this.value)">' +
+          '<button class="set-check ' + (isDone ? 'done' : '') + '" onclick="toggleSet(\'' + doneKey + '\', this)">✓</button>' +
+          '</div>';
+      }
+      html += '</div>';
+    });
+
+    container.innerHTML = html;
+  }
+
+  function toggleSet(key, btn) {
+    const isDone = getData(key) === '1';
+    syncData(key, isDone ? '0' : '1');
+    if (!isDone) {
+      setTimer(90);
+      if (!timerRunning) toggleTimer();
+    }
+    updateUI();
+  }
+
+  function setTimer(secs) {
+    timerSeconds = secs;
+    updateTimerDisplay();
+  }
+
+  function updateTimerDisplay() {
+    const m = Math.floor(timerSeconds / 60).toString().padStart(2, '0');
+    const s = (timerSeconds % 60).toString().padStart(2, '0');
+    const el = document.getElementById('time-left');
+    if (el) el.innerText = m + ":" + s;
+  }
+
+  function toggleTimer() {
+    const btn = document.getElementById('timer-toggle-btn');
+    if (timerRunning) {
+      clearInterval(timerInterval);
+      timerRunning = false;
+      if (btn) { btn.innerText = "Start"; btn.classList.add('start'); }
+    } else {
+      timerRunning = true;
+      if (btn) { btn.innerText = "Pause"; btn.classList.remove('start'); }
+      timerInterval = setInterval(() => {
+        if (timerSeconds > 0) {
+          timerSeconds--;
+          updateTimerDisplay();
+        } else {
+          clearInterval(timerInterval);
+          timerRunning = false;
+          if (btn) { btn.innerText = "Start"; btn.classList.add('start'); }
+          if (navigator.vibrate) navigator.vibrate([200, 100, 200]);
+        }
+      }, 1000);
+    }
+  }
+
+  function sendWhatsAppSchedule() {
+    const wedNote = getData("note_" + currentWeek + "_wed");
+    const satNote = getData("note_" + currentWeek + "_sat");
+    
+    let msg = "*Training Update - Week " + currentWeek + "*\n\n";
+    msg += "🥊 Mon Boxing: " + (getData("session_" + currentWeek + "_mon") === '1' ? '✅ Completed' : '⬜ Pending') + "\n";
+    msg += "🏃 Wed Hyrox: " + (getData("session_" + currentWeek + "_wed") === '1' ? '✅ Completed' : '⬜ Pending') + "\n";
+    if (wedNote) msg += "   _Wed Notes:_ " + wedNote + "\n";
+    msg += "🏋️ Fri Strength: " + (getData("session_" + currentWeek + "_fri") === '1' ? '✅ Completed' : '⬜ Pending') + "\n";
+    msg += "🏃 Sat Hyrox: " + (getData("session_" + currentWeek + "_sat") === '1' ? '✅ Completed' : '⬜ Pending') + "\n";
+    if (satNote) msg += "   _Sat Notes:_ " + satNote + "\n";
+
+    window.open("https://wa.me/" + COACH_PHONE_NUMBER + "?text=" + encodeURIComponent(msg), "_blank");
+  }
+
+  function sendWhatsAppFridayWorkout() {
+    const isWorkoutA = (currentWeek % 2 !== 0);
+    const workoutKey = isWorkoutA ? 'A' : 'B';
+    const exerciseList = getActiveExercises(workoutKey);
+    
+    let msg = "*Friday Strength Completed - Week " + currentWeek + " (" + (isWorkoutA ? "Workout A" : "Workout B") + ")*\n\n";
+    exerciseList.forEach(ex => {
+      const exSlug = ex.name.replace(/[^a-zA-Z0-9]/g, '_').toLowerCase();
+      msg += "*" + ex.name + "*\n";
+      for (let s = 1; s <= ex.sets; s++) {
+        const wt = getData("w_" + currentWeek + "_" + exSlug + "_s" + s + "_wt");
+        const rp = getData("w_" + currentWeek + "_" + exSlug + "_s" + s + "_rp");
+        if (wt || rp) {
+          msg += "  Set " + s + ": " + (wt ? wt + 'kg' : '') + " " + (rp ? 'x ' + rp + ' reps' : '') + "\n";
+        }
+      }
+    });
+
+    window.open("https://wa.me/" + COACH_PHONE_NUMBER + "?text=" + encodeURIComponent(msg), "_blank");
+  }
+
+  setWeek(1);
+</script>
+</body>
+</html>
