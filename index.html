@@ -876,4 +876,487 @@
   }
 
   function saveActivityFromModal() {
-    if (!editing
+    if (!editingDayKey) return;
+    const newTitle = document.getElementById('modal-act-title').value.trim();
+    const newSub = document.getElementById('modal-act-sub').value.trim();
+    if (!newTitle) {
+      alert("Please enter an activity name");
+      return;
+    }
+    syncData("act_title_" + editingDayKey, newTitle);
+    syncData("act_sub_" + editingDayKey, newSub);
+    closeActivityModal();
+    updateUI();
+  }
+
+  function resetActivityToDefault() {
+    if (!editingDayKey) return;
+    const def = defaultSchedule[editingDayKey];
+    syncData("act_title_" + editingDayKey, def.title);
+    syncData("act_sub_" + editingDayKey, def.sub);
+    closeActivityModal();
+    updateUI();
+  }
+
+  function toggleDrawer(day) {
+    const drawer = document.getElementById("drawer-" + day);
+    const icon = document.getElementById("drawer-icon-" + day);
+    if (!drawer) return;
+    const isOpen = drawer.classList.contains("open");
+    drawer.classList.toggle("open", !isOpen);
+    if (icon) icon.innerText = isOpen ? "▸" : "▾";
+  }
+
+  function switchTab(tab) {
+    const tabSched = document.getElementById('tab-btn-schedule');
+    const tabWork = document.getElementById('tab-btn-workout');
+    const paneSched = document.getElementById('schedule-tab');
+    const paneWork = document.getElementById('workout-tab');
+
+    if (tab === 'schedule') {
+      tabSched.classList.add('active');
+      tabWork.classList.remove('active');
+      paneSched.style.display = 'block';
+      paneWork.style.display = 'none';
+    } else {
+      tabWork.classList.add('active');
+      tabSched.classList.remove('active');
+      paneSched.style.display = 'none';
+      paneWork.style.display = 'block';
+      renderWorkout();
+    }
+  }
+
+  function setWeek(w) {
+    currentWeek = w;
+    document.querySelectorAll('.week-pill').forEach((p, idx) => {
+      p.classList.toggle('active', idx + 1 === w);
+    });
+    updateUI();
+  }
+
+  function toggleSession(day) {
+    const key = "session_" + currentWeek + "_" + day;
+    const current = getData(key) === '1';
+    syncData(key, current ? '0' : '1');
+    updateUI();
+  }
+
+  function saveNote(session, val) {
+    syncData("note_" + currentWeek + "_" + session, val);
+    updateDrawerDot(session);
+  }
+
+  function saveCoachNote(session, val) {
+    syncData("coach_note_" + currentWeek + "_" + session, val);
+    updateDrawerDot(session);
+  }
+
+  function updateDrawerDot(session) {
+    const dot = document.getElementById("dot-" + session);
+    if (!dot) return;
+    const n = getData("note_" + currentWeek + "_" + session);
+    const cn = getData("coach_note_" + currentWeek + "_" + session);
+    const rpe = parseInt(getData("rpe_" + currentWeek + "_" + session) || 0);
+    dot.style.display = (n || cn || rpe > 0) ? "inline-block" : "none";
+  }
+
+  const rpeLevels = [
+    { val: 1, label: "1 - 😃 Very Easy / Recovery" },
+    { val: 2, label: "2 - 😊 Easy / Warmup pace" },
+    { val: 3, label: "3 - 🙂 Light Effort" },
+    { val: 4, label: "4 - Moderate / Comfortable" },
+    { val: 5, label: "5 - 😐 Noticeable Effort" },
+    { val: 6, label: "6 - Steady / Challenging" },
+    { val: 7, label: "7 - 😤 Vigorous / ~3 reps left" },
+    { val: 8, label: "8 - 😫 Heavy / ~2 reps left" },
+    { val: 9, label: "9 - 🥵 Very Hard / ~1 rep left" },
+    { val: 10, label: "10 - 💀 Maximum Effort / Failure" }
+  ];
+
+  function renderRpeChips(sessionKey) {
+    const container = document.getElementById("rpe-chips-" + sessionKey);
+    const labelEl = document.getElementById("rpe-label-" + sessionKey);
+    if (!container) return;
+
+    const currentVal = parseInt(getData("rpe_" + currentWeek + "_" + sessionKey) || 0);
+
+    let html = '';
+    for (let i = 1; i <= 10; i++) {
+      html += '<button type="button" class="rpe-chip ' + (currentVal === i ? 'selected' : '') + '" onclick="toggleRpe(\'' + sessionKey + '\', ' + i + ')">' + i + '</button>';
+    }
+    container.innerHTML = html;
+
+    if (labelEl) {
+      if (currentVal > 0) {
+        const item = rpeLevels.find(r => r.val === currentVal);
+        labelEl.innerText = item ? item.label : "RPE " + currentVal;
+      } else {
+        labelEl.innerText = "Tap 1-10 to rate";
+      }
+    }
+  }
+
+  function toggleRpe(sessionKey, val) {
+    const currentVal = parseInt(getData("rpe_" + currentWeek + "_" + sessionKey) || 0);
+    if (currentVal === val) {
+      syncData("rpe_" + currentWeek + "_" + sessionKey, 0);
+    } else {
+      syncData("rpe_" + currentWeek + "_" + sessionKey, val);
+    }
+    renderRpeChips(sessionKey);
+    updateDrawerDot(sessionKey);
+  }
+
+  function clearRpe(sessionKey) {
+    syncData("rpe_" + currentWeek + "_" + sessionKey, 0);
+    renderRpeChips(sessionKey);
+    updateDrawerDot(sessionKey);
+  }
+
+  // ================= DATE HELPERS =================
+  function getComputedDate(weekNumber, dayKey) {
+    const base = new Date(PROGRAM_START_DATE + "T00:00:00");
+    const daysToAdd = ((weekNumber - 1) * 7) + dayOffsetMap[dayKey];
+    base.setDate(base.getDate() + daysToAdd);
+    return base;
+  }
+
+  function formatDateBadge(d) {
+    return d.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' }); // e.g. "2 Nov"
+  }
+
+  function isSameDay(d1, d2) {
+    return d1.getFullYear() === d2.getFullYear() &&
+           d1.getMonth() === d2.getMonth() &&
+           d1.getDate() === d2.getDate();
+  }
+
+  function updateUI() {
+    const isWorkoutA = (currentWeek % 2 !== 0);
+    const today = new Date();
+
+    // Compute Date Range for Current Week
+    const monDate = getComputedDate(currentWeek, 'mon');
+    const sunDate = getComputedDate(currentWeek, 'sun');
+    const rangeEl = document.getElementById("week-date-range");
+    if (rangeEl) {
+      rangeEl.innerText = formatDateBadge(monDate) + " – " + formatDateBadge(sunDate);
+    }
+
+    // Update Day Titles, Dates & Tags
+    dayKeys.forEach(day => {
+      const isDone = getData("session_" + currentWeek + "_" + day) === '1';
+      const btn = document.getElementById("btn-" + day);
+      if (btn) btn.classList.toggle('done', isDone);
+
+      const titleEl = document.getElementById("title-" + day);
+      const subEl = document.getElementById("sub-" + day);
+      const shareBtn = document.getElementById("share-btn-" + day);
+      const dateEl = document.getElementById("date-" + day);
+      const todayPill = document.getElementById("today-" + day);
+      const cardEl = document.getElementById("card-" + day);
+
+      const dayDate = getComputedDate(currentWeek, day);
+      if (dateEl) dateEl.innerText = formatDateBadge(dayDate);
+
+      const isCurrentDay = isSameDay(today, dayDate);
+      if (todayPill) todayPill.style.display = isCurrentDay ? 'inline-block' : 'none';
+      if (cardEl) cardEl.classList.toggle('is-today', isCurrentDay);
+
+      const act = getActivityData(day);
+
+      if (day === 'fri') {
+        if (currentWeek === 4) {
+          if (titleEl) titleEl.innerText = act.title + " (Workout B)";
+          if (subEl) subEl.innerText = "⭐ 1-on-1 In-Person Check-In with PT";
+        } else {
+          if (titleEl) titleEl.innerText = act.title + " (" + (isWorkoutA ? "Workout A" : "Workout B") + ")";
+          if (subEl) subEl.innerText = act.sub;
+        }
+      } else {
+        if (titleEl) titleEl.innerText = act.title;
+        if (subEl) subEl.innerText = act.sub;
+      }
+
+      if (shareBtn) {
+        shareBtn.innerText = "💬 Share " + act.title + " with Coach";
+      }
+    });
+
+    // Populate notes & coach notes
+    ['mon', 'tue', 'wed', 'thu', 'sat', 'sun', 'strength'].forEach(session => {
+      const noteEl = document.getElementById("notes-" + session);
+      if (noteEl && document.activeElement !== noteEl) {
+        noteEl.value = getData("note_" + currentWeek + "_" + session);
+      }
+      const coachEl = document.getElementById("coach-notes-" + session);
+      if (coachEl && document.activeElement !== coachEl) {
+        coachEl.value = getData("coach_note_" + currentWeek + "_" + session);
+      }
+      renderRpeChips(session);
+      updateDrawerDot(session);
+    });
+
+    let doneCount = 0;
+    ['mon', 'wed', 'fri', 'sat'].forEach(d => {
+      if (getData("session_" + currentWeek + "_" + d) === '1') doneCount++;
+    });
+    const statEl = document.getElementById('completion-stat');
+    if (statEl) statEl.innerText = doneCount + "/4 Core Done";
+
+    renderWorkout();
+  }
+
+  function moveExercise(workoutKey, index, direction) {
+    const workout = getWorkoutData(workoutKey);
+    const list = [...workout.exercises];
+    const target = index + direction;
+    if (target < 0 || target >= list.length) return;
+
+    const temp = list[index];
+    list[index] = list[target];
+    list[target] = temp;
+
+    workout.exercises = list;
+    saveWorkoutData(workoutKey, workout);
+  }
+
+  function openAddExerciseModal() {
+    const isWorkoutA = (currentWeek % 2 !== 0);
+    const workoutKey = isWorkoutA ? 'A' : 'B';
+    editingExerciseIndex = -1;
+    document.getElementById('modal-title-text').innerText = "Add Exercise (" + (workoutKey === 'A' ? "Workout A" : "Workout B") + ")";
+    document.getElementById('modal-ex-name').value = "";
+    document.getElementById('modal-ex-sets').value = "4";
+    document.getElementById('modal-ex-reps').value = "8 reps";
+    document.getElementById('exercise-modal').style.display = "flex";
+  }
+
+  function openEditExerciseModal(index) {
+    const isWorkoutA = (currentWeek % 2 !== 0);
+    const workoutKey = isWorkoutA ? 'A' : 'B';
+    const workout = getWorkoutData(workoutKey);
+    const ex = workout.exercises[index];
+    if (!ex) return;
+
+    editingExerciseIndex = index;
+    document.getElementById('modal-title-text').innerText = "Edit Exercise";
+    document.getElementById('modal-ex-name').value = ex.name;
+    document.getElementById('modal-ex-sets').value = ex.sets;
+    document.getElementById('modal-ex-reps').value = ex.reps;
+    document.getElementById('exercise-modal').style.display = "flex";
+  }
+
+  function closeExerciseModal() {
+    document.getElementById('exercise-modal').style.display = "none";
+  }
+
+  function saveExerciseFromModal() {
+    const name = document.getElementById('modal-ex-name').value.trim();
+    const sets = parseInt(document.getElementById('modal-ex-sets').value) || 3;
+    const reps = document.getElementById('modal-ex-reps').value.trim() || "8 reps";
+
+    if (!name) {
+      alert("Please enter an exercise name");
+      return;
+    }
+
+    const isWorkoutA = (currentWeek % 2 !== 0);
+    const workoutKey = isWorkoutA ? 'A' : 'B';
+    const workout = getWorkoutData(workoutKey);
+
+    if (editingExerciseIndex === -1) {
+      workout.exercises.push({ name, sets, reps });
+    } else {
+      workout.exercises[editingExerciseIndex] = { name, sets, reps };
+    }
+
+    saveWorkoutData(workoutKey, workout);
+    closeExerciseModal();
+  }
+
+  function deleteExercise(index) {
+    const isWorkoutA = (currentWeek % 2 !== 0);
+    const workoutKey = isWorkoutA ? 'A' : 'B';
+    const workout = getWorkoutData(workoutKey);
+    const ex = workout.exercises[index];
+    if (!ex) return;
+
+    if (confirm("Are you sure you want to remove '" + ex.name + "' from " + workout.name + "?")) {
+      workout.exercises.splice(index, 1);
+      saveWorkoutData(workoutKey, workout);
+    }
+  }
+
+  function renderWorkout() {
+    const isWorkoutA = (currentWeek % 2 !== 0);
+    const workoutKey = isWorkoutA ? 'A' : 'B';
+    const workout = getWorkoutData(workoutKey);
+    const container = document.getElementById('workout-container');
+    if (!container) return;
+
+    let html = '<div class="card-title"><div>' +
+      '<span>' + workout.name + '</span>' +
+      '<span style="font-size:0.75rem; color:var(--text-muted); display:block; font-weight:normal; margin-top:4px;">' +
+      'Week ' + currentWeek + ': Focus on solid form & strict rest' +
+      '</span></div></div>';
+
+    workout.exercises.forEach((ex, exIdx) => {
+      const exSlug = ex.name.replace(/[^a-zA-Z0-9]/g, '_').toLowerCase();
+
+      html += '<div class="exercise-box">' +
+        '<div class="ex-header">' +
+          '<div class="ex-title-wrap">' +
+            '<span class="ex-name">' + ex.name + '</span>' +
+            '<span class="ex-meta">' + ex.sets + ' × ' + ex.reps + '</span>' +
+          '</div>' +
+          '<div class="action-group">' +
+            (exIdx > 0 ? '<button type="button" title="Move Up" class="icon-btn" onclick="moveExercise(\'' + workoutKey + '\', ' + exIdx + ', -1)">▲</button>' : '') +
+            (exIdx < workout.exercises.length - 1 ? '<button type="button" title="Move Down" class="icon-btn" onclick="moveExercise(\'' + workoutKey + '\', ' + exIdx + ', 1)">▼</button>' : '') +
+            '<button type="button" title="Edit Exercise" class="icon-btn edit" onclick="openEditExerciseModal(' + exIdx + ')">✏️</button>' +
+            '<button type="button" title="Remove Exercise" class="icon-btn delete" onclick="deleteExercise(' + exIdx + ')">✕</button>' +
+          '</div>' +
+        '</div>';
+
+      for (let s = 1; s <= ex.sets; s++) {
+        const wtKey = "w_" + currentWeek + "_" + exSlug + "_s" + s + "_wt";
+        const rpKey = "w_" + currentWeek + "_" + exSlug + "_s" + s + "_rp";
+        const doneKey = "w_" + currentWeek + "_" + exSlug + "_s" + s + "_done";
+
+        const savedWeight = getData(wtKey);
+        const savedRep = getData(rpKey);
+        const isDone = getData(doneKey) === '1';
+
+        html += '<div class="set-row">' +
+          '<span class="set-num">Set ' + s + '</span>' +
+          '<input type="text" class="log-input" placeholder="kg" value="' + savedWeight + '" onchange="syncData(\'' + wtKey + '\', this.value)">' +
+          '<input type="text" class="log-input" placeholder="reps" value="' + savedRep + '" onchange="syncData(\'' + rpKey + '\', this.value)">' +
+          '<button class="set-check ' + (isDone ? 'done' : '') + '" onclick="toggleSet(\'' + doneKey + '\', this)">✓</button>' +
+          '</div>';
+      }
+      html += '</div>';
+    });
+
+    container.innerHTML = html;
+  }
+
+  function toggleSet(key, btn) {
+    const isDone = getData(key) === '1';
+    syncData(key, isDone ? '0' : '1');
+    if (!isDone) {
+      setTimer(90);
+      if (!timerRunning) toggleTimer();
+    }
+    updateUI();
+  }
+
+  function setTimer(secs) {
+    timerSeconds = secs;
+    updateTimerDisplay();
+  }
+
+  function updateTimerDisplay() {
+    const m = Math.floor(timerSeconds / 60).toString().padStart(2, '0');
+    const s = (timerSeconds % 60).toString().padStart(2, '0');
+    const el = document.getElementById('time-left');
+    if (el) el.innerText = m + ":" + s;
+  }
+
+  function toggleTimer() {
+    const btn = document.getElementById('timer-toggle-btn');
+    if (timerRunning) {
+      clearInterval(timerInterval);
+      timerRunning = false;
+      if (btn) { btn.innerText = "Start"; btn.classList.add('start'); }
+    } else {
+      timerRunning = true;
+      if (btn) { btn.innerText = "Pause"; btn.classList.remove('start'); }
+      timerInterval = setInterval(() => {
+        if (timerSeconds > 0) {
+          timerSeconds--;
+          updateTimerDisplay();
+        } else {
+          clearInterval(timerInterval);
+          timerRunning = false;
+          if (btn) { btn.innerText = "Start"; btn.classList.add('start'); }
+          if (navigator.vibrate) navigator.vibrate([200, 100, 200]);
+        }
+      }, 1000);
+    }
+  }
+
+  function shareSingleWorkout(sessionKey) {
+    let isStrength = (sessionKey === 'strength' || sessionKey === 'fri');
+    let title = "";
+    const dayDate = sessionKey === 'strength' ? getComputedDate(currentWeek, 'fri') : getComputedDate(currentWeek, sessionKey);
+    const dateStr = formatDateBadge(dayDate);
+
+    if (isStrength) {
+      const isWorkoutA = (currentWeek % 2 !== 0);
+      const act = getActivityData('fri');
+      title = "🏋️ " + act.title + " (" + (isWorkoutA ? "Workout A" : "Workout B") + ")";
+    } else {
+      const act = getActivityData(sessionKey);
+      const icons = { mon: "🥊", tue: "🧘", wed: "🏃", thu: "🛌", sat: "🏃", sun: "🛌" };
+      title = (icons[sessionKey] || "⚡") + " " + act.title;
+    }
+
+    const clientNote = getData("note_" + currentWeek + "_" + sessionKey);
+    const coachNote = getData("coach_note_" + currentWeek + "_" + sessionKey);
+    const rpeVal = getData("rpe_" + currentWeek + "_" + sessionKey);
+    const rpeObj = rpeLevels.find(r => r.val === parseInt(rpeVal));
+
+    let msg = "*" + title + " - Week " + currentWeek + " (" + dateStr + ")*\n\n";
+    
+    if (!isStrength) {
+      const isDone = getData("session_" + currentWeek + "_" + sessionKey) === '1';
+      msg += "Status: " + (isDone ? "✅ Completed / Checked" : "⬜ Logged") + "\n";
+    }
+
+    if (rpeVal && parseInt(rpeVal) > 0) {
+      msg += "⚡ RPE Effort / Strain: " + (rpeObj ? rpeObj.label : rpeVal + "/10") + "\n";
+    }
+
+    if (clientNote) {
+      msg += "\n📝 *Client Notes / Questions:*\n" + clientNote + "\n";
+    }
+
+    if (coachNote) {
+      msg += "\n🎯 *Coach Notes / Directives:*\n" + coachNote + "\n";
+    }
+
+    if (isStrength) {
+      const isWorkoutA = (currentWeek % 2 !== 0);
+      const workoutKey = isWorkoutA ? 'A' : 'B';
+      const workout = getWorkoutData(workoutKey);
+      
+      msg += "\n📊 *Logged Exercises:*\n";
+      let loggedCount = 0;
+      workout.exercises.forEach(ex => {
+        const exSlug = ex.name.replace(/[^a-zA-Z0-9]/g, '_').toLowerCase();
+        let setsLogged = [];
+        for (let s = 1; s <= ex.sets; s++) {
+          const wt = getData("w_" + currentWeek + "_" + exSlug + "_s" + s + "_wt");
+          const rp = getData("w_" + currentWeek + "_" + exSlug + "_s" + s + "_rp");
+          if (wt || rp) {
+            setsLogged.push("Set " + s + ": " + (wt ? wt + 'kg' : '') + (rp ? ' x ' + rp + ' reps' : ''));
+          }
+        }
+        if (setsLogged.length > 0) {
+          loggedCount++;
+          msg += "• *" + ex.name + "*\n   " + setsLogged.join(", ") + "\n";
+        }
+      });
+      if (loggedCount === 0) {
+        msg += "_(No exercise weights logged yet)_\n";
+      }
+    }
+
+    window.open("https://wa.me/" + COACH_PHONE_NUMBER + "?text=" + encodeURIComponent(msg), "_blank");
+  }
+
+  setWeek(1);
+</script>
+</body>
+</html>
