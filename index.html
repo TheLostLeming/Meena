@@ -19,6 +19,7 @@
       --primary: #38bdf8;
       --accent: #10b981;
       --danger: #ef4444;
+      --warning: #f59e0b;
       --border: #334155;
       --boxing: #ec4899;
       --hyrox: #f97316;
@@ -26,58 +27,92 @@
     }
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
     body { background-color: var(--bg); color: var(--text); padding-bottom: 70px; }
-    header { background: #111827; padding: 16px 20px; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 50; }
-    h1 { font-size: 1.1rem; font-weight: 700; color: #fff; }
+    header { background: #111827; padding: 14px 18px; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 50; }
+    h1 { font-size: 1.05rem; font-weight: 700; color: #fff; }
     .status-badge { font-size: 0.72rem; padding: 4px 8px; border-radius: 999px; font-weight: 600; display: inline-flex; align-items: center; gap: 4px; }
     .status-online { background: rgba(16, 185, 129, 0.15); color: var(--accent); }
     .status-offline { background: rgba(239, 68, 68, 0.15); color: var(--danger); }
+    
     .nav-tabs { display: flex; background: #111827; border-bottom: 1px solid var(--border); }
-    .tab-btn { flex: 1; padding: 14px; text-align: center; color: var(--text-muted); background: none; border: none; font-size: 0.9rem; font-weight: 600; cursor: pointer; border-bottom: 2px solid transparent; }
+    .tab-btn { flex: 1; padding: 12px; text-align: center; color: var(--text-muted); background: none; border: none; font-size: 0.88rem; font-weight: 600; cursor: pointer; border-bottom: 2px solid transparent; }
     .tab-btn.active { color: var(--primary); border-bottom: 2px solid var(--primary); background: rgba(56, 189, 248, 0.05); }
-    .content-area { padding: 16px; max-width: 650px; margin: 0 auto; }
+    
+    .content-area { padding: 14px; max-width: 650px; margin: 0 auto; }
     .card { background: var(--card-bg); border-radius: 12px; padding: 16px; margin-bottom: 16px; border: 1px solid var(--border); }
     .card-title { font-size: 1rem; font-weight: 700; margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center; }
-    .week-selector { display: flex; gap: 8px; margin-bottom: 16px; }
-    .week-pill { flex: 1; padding: 8px 4px; text-align: center; border-radius: 8px; font-size: 0.8rem; font-weight: 600; background: var(--card-bg); border: 1px solid var(--border); color: var(--text-muted); cursor: pointer; }
+    
+    .week-selector { display: flex; gap: 6px; margin-bottom: 14px; }
+    .week-pill { flex: 1; padding: 8px 4px; text-align: center; border-radius: 8px; font-size: 0.78rem; font-weight: 600; background: var(--card-bg); border: 1px solid var(--border); color: var(--text-muted); cursor: pointer; }
     .week-pill.active { background: var(--primary); color: #000; border-color: var(--primary); }
     
-    .day-card { background: rgba(15, 23, 42, 0.6); border: 1px solid rgba(255,255,255,0.06); border-radius: 10px; padding: 12px; margin-bottom: 10px; }
+    .day-card { background: rgba(15, 23, 42, 0.6); border: 1px solid rgba(255,255,255,0.06); border-radius: 10px; padding: 14px; margin-bottom: 12px; }
     .day-row { display: flex; align-items: center; justify-content: space-between; }
-    .day-info { display: flex; align-items: center; gap: 12px; }
-    .day-tag { font-size: 0.75rem; font-weight: 700; width: 44px; text-align: center; padding: 4px; border-radius: 6px; }
+    .day-info { display: flex; align-items: center; gap: 10px; }
+    .day-tag { font-size: 0.72rem; font-weight: 700; width: 44px; text-align: center; padding: 4px; border-radius: 6px; }
     .tag-box { background: rgba(236, 72, 153, 0.2); color: var(--boxing); }
     .tag-hyrox { background: rgba(249, 115, 22, 0.2); color: var(--hyrox); }
     .tag-str { background: rgba(56, 189, 248, 0.2); color: var(--primary); }
     .tag-rest { background: rgba(148, 163, 184, 0.2); color: var(--text-muted); }
+    
     .check-btn { width: 34px; height: 34px; border-radius: 50%; border: 2px solid var(--border); background: transparent; cursor: pointer; display: flex; align-items: center; justify-content: center; color: transparent; font-weight: bold; transition: all 0.2s; }
     .check-btn.done { background: var(--accent); border-color: var(--accent); color: #000; }
     
-    .notes-box { margin-top: 10px; padding-top: 8px; border-top: 1px solid rgba(255,255,255,0.05); }
-    .notes-input { width: 100%; background: var(--card-bg); border: 1px solid var(--border); color: #fff; border-radius: 6px; padding: 8px; font-size: 0.8rem; resize: vertical; min-height: 52px; box-sizing: border-box; }
+    /* Notes & Input Sections */
+    .section-label { font-size: 0.75rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; color: var(--text-muted); margin-bottom: 4px; display: flex; align-items: center; gap: 5px; }
+    .notes-box { margin-top: 10px; padding-top: 8px; border-top: 1px solid rgba(255,255,255,0.06); }
+    .notes-input { width: 100%; background: var(--bg); border: 1px solid var(--border); color: #fff; border-radius: 6px; padding: 8px; font-size: 0.82rem; resize: vertical; min-height: 48px; box-sizing: border-box; }
+    .coach-notes-input { width: 100%; background: rgba(56, 189, 248, 0.05); border: 1px solid rgba(56, 189, 248, 0.25); color: #e2e8f0; border-radius: 6px; padding: 8px; font-size: 0.82rem; resize: vertical; min-height: 44px; box-sizing: border-box; }
     
-    .timer-bar { display: flex; align-items: center; justify-content: space-between; background: #000; padding: 12px 16px; border-radius: 10px; margin-bottom: 16px; border: 1px solid var(--border); }
-    .timer-display { font-size: 1.4rem; font-weight: 800; font-family: monospace; color: var(--primary); }
+    /* RPE Scale & Smiley Rating */
+    .rpe-container { margin-top: 10px; padding-top: 8px; border-top: 1px solid rgba(255,255,255,0.06); }
+    .rpe-chips { display: flex; gap: 4px; overflow-x: auto; padding-bottom: 2px; }
+    .rpe-chip { flex: 1; min-width: 28px; text-align: center; padding: 6px 2px; border-radius: 6px; font-size: 0.75rem; font-weight: 700; background: var(--bg); border: 1px solid var(--border); color: var(--text-muted); cursor: pointer; transition: all 0.15s; }
+    .rpe-chip.selected { background: var(--warning); color: #000; border-color: var(--warning); }
+    .rpe-rating-label { font-size: 0.75rem; color: var(--warning); margin-top: 4px; font-weight: 600; min-height: 16px; }
+
+    /* Single Workout WhatsApp Button */
+    .single-share-btn { display: inline-flex; align-items: center; justify-content: center; gap: 6px; width: 100%; background: rgba(37, 211, 102, 0.12); border: 1px solid rgba(37, 211, 102, 0.35); color: var(--whatsapp); font-weight: 700; font-size: 0.8rem; padding: 8px; border-radius: 6px; cursor: pointer; margin-top: 10px; }
+    .single-share-btn:hover { background: rgba(37, 211, 102, 0.2); }
+
+    /* Rest Timer */
+    .timer-bar { display: flex; align-items: center; justify-content: space-between; background: #000; padding: 12px 16px; border-radius: 10px; margin-bottom: 14px; border: 1px solid var(--border); }
+    .timer-display { font-size: 1.35rem; font-weight: 800; font-family: monospace; color: var(--primary); }
     .timer-controls { display: flex; gap: 6px; }
     .t-btn { background: var(--card-sub); border: none; color: #fff; padding: 6px 10px; border-radius: 6px; font-size: 0.75rem; font-weight: 600; cursor: pointer; }
     .t-btn.start { background: var(--accent); color: #000; }
     
-    .exercise-box { background: rgba(15, 23, 42, 0.7); border-radius: 10px; padding: 14px; margin-bottom: 12px; border: 1px solid rgba(255,255,255,0.06); }
-    .ex-header { display: flex; justify-content: space-between; margin-bottom: 10px; align-items: center; }
-    .ex-title-wrap { display: flex; align-items: baseline; gap: 8px; }
-    .ex-name { font-weight: 700; font-size: 0.95rem; color: #fff; }
-    .ex-meta { font-size: 0.8rem; color: var(--primary); font-weight: 600; }
+    /* Exercises */
+    .exercise-box { background: rgba(15, 23, 42, 0.7); border-radius: 10px; padding: 12px; margin-bottom: 12px; border: 1px solid rgba(255,255,255,0.06); }
+    .ex-header { display: flex; justify-content: space-between; margin-bottom: 8px; align-items: center; }
+    .ex-title-wrap { display: flex; align-items: baseline; gap: 6px; flex-wrap: wrap; }
+    .ex-name { font-weight: 700; font-size: 0.92rem; color: #fff; }
+    .ex-meta { font-size: 0.78rem; color: var(--primary); font-weight: 600; }
     
-    .move-btn-group { display: flex; gap: 4px; }
-    .move-btn { background: var(--card-sub); border: 1px solid var(--border); color: var(--text-muted); width: 26px; height: 26px; border-radius: 6px; cursor: pointer; font-size: 0.7rem; line-height: 1; display: inline-flex; align-items: center; justify-content: center; }
-    .move-btn:active { background: var(--primary); color: #000; }
+    .action-group { display: flex; gap: 4px; align-items: center; }
+    .icon-btn { background: var(--card-sub); border: 1px solid var(--border); color: var(--text-muted); width: 26px; height: 26px; border-radius: 6px; cursor: pointer; font-size: 0.72rem; display: inline-flex; align-items: center; justify-content: center; }
+    .icon-btn:hover { color: #fff; }
+    .icon-btn.delete:hover { background: var(--danger); color: #fff; border-color: var(--danger); }
+    .icon-btn.edit:hover { background: var(--primary); color: #000; border-color: var(--primary); }
 
-    .set-row { display: grid; grid-template-columns: 42px 1fr 1fr 36px; gap: 8px; align-items: center; margin-bottom: 6px; }
+    .set-row { display: grid; grid-template-columns: 42px 1fr 1fr 34px; gap: 6px; align-items: center; margin-bottom: 6px; }
     .set-num { font-size: 0.75rem; color: var(--text-muted); font-weight: 600; }
     .log-input { background: var(--card-bg); border: 1px solid var(--border); color: #fff; border-radius: 6px; padding: 6px 8px; font-size: 0.85rem; text-align: center; }
-    .set-check { width: 32px; height: 32px; border-radius: 6px; border: 1px solid var(--border); background: transparent; cursor: pointer; display: flex; align-items: center; justify-content: center; color: transparent; font-size: 0.75rem; font-weight: bold; }
+    .set-check { width: 30px; height: 30px; border-radius: 6px; border: 1px solid var(--border); background: transparent; cursor: pointer; display: flex; align-items: center; justify-content: center; color: transparent; font-size: 0.75rem; font-weight: bold; }
     .set-check.done { background: var(--accent); border-color: var(--accent); color: #000; }
     
-    .whatsapp-btn { display: flex; align-items: center; justify-content: center; gap: 8px; width: 100%; background: var(--whatsapp); color: #000; font-weight: 700; font-size: 0.95rem; padding: 14px; border-radius: 8px; border: none; cursor: pointer; margin-top: 14px; }
+    .add-ex-btn { width: 100%; padding: 10px; background: rgba(56, 189, 248, 0.1); border: 1px dashed var(--primary); color: var(--primary); border-radius: 8px; font-weight: 700; font-size: 0.85rem; cursor: pointer; margin-top: 4px; margin-bottom: 16px; }
+    .add-ex-btn:hover { background: rgba(56, 189, 248, 0.2); }
+
+    /* Modal for Add / Edit Exercise */
+    .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.75); display: none; align-items: center; justify-content: center; z-index: 100; padding: 16px; }
+    .modal-card { background: var(--card-bg); border: 1px solid var(--border); border-radius: 12px; max-width: 420px; width: 100%; padding: 18px; }
+    .modal-title { font-size: 1.05rem; font-weight: 700; margin-bottom: 12px; }
+    .form-group { margin-bottom: 12px; }
+    .form-group label { display: block; font-size: 0.78rem; color: var(--text-muted); margin-bottom: 4px; font-weight: 600; }
+    .form-control { width: 100%; background: var(--bg); border: 1px solid var(--border); border-radius: 6px; padding: 8px 10px; color: #fff; font-size: 0.9rem; }
+    .modal-actions { display: flex; gap: 8px; justify-content: flex-end; margin-top: 16px; }
+    .btn-secondary { background: var(--card-sub); border: none; color: #fff; padding: 8px 14px; border-radius: 6px; font-size: 0.85rem; cursor: pointer; }
+    .btn-primary { background: var(--primary); border: none; color: #000; padding: 8px 14px; border-radius: 6px; font-size: 0.85rem; font-weight: 700; cursor: pointer; }
   </style>
 </head>
 <body>
@@ -85,7 +120,7 @@
 <header>
   <div>
     <h1>Strength & Performance</h1>
-    <span style="font-size: 0.8rem; color: var(--text-muted);">Personal Training Portal</span>
+    <span style="font-size: 0.78rem; color: var(--text-muted);">Personal Training Portal</span>
   </div>
   <div id="sync-status" class="status-badge status-offline">● Connecting...</div>
 </header>
@@ -95,7 +130,7 @@
   <button class="tab-btn" id="tab-btn-workout" onclick="switchTab('workout')">🏋️ Friday Strength</button>
 </div>
 
-<!-- TAB 1: WEEK PLAN -->
+<!-- ================= TAB 1: WEEK PLAN ================= -->
 <div class="content-area" id="schedule-tab">
   <div class="week-selector">
     <div class="week-pill active" onclick="setWeek(1)">W1 (Base)</div>
@@ -110,7 +145,7 @@
       <span style="font-size: 0.8rem; color: var(--accent);" id="completion-stat">0/4 Done</span>
     </div>
     
-    <!-- Monday -->
+    <!-- Monday: Boxing -->
     <div class="day-card">
       <div class="day-row">
         <div class="day-info">
@@ -122,9 +157,32 @@
         </div>
         <button class="check-btn" id="btn-mon" onclick="toggleSession('mon')">✓</button>
       </div>
+
+      <!-- RPE Scale -->
+      <div class="rpe-container">
+        <div class="section-label">⚡ Session RPE / Effort</div>
+        <div class="rpe-chips" id="rpe-chips-mon"></div>
+        <div class="rpe-rating-label" id="rpe-label-mon"></div>
+      </div>
+
+      <!-- Client Notes -->
+      <div class="notes-box">
+        <div class="section-label">📝 Client Questions & Notes</div>
+        <textarea class="notes-input" id="notes-mon" placeholder="How was the session? Questions or feedback..." oninput="saveNote('mon', this.value)" onblur="saveNote('mon', this.value)"></textarea>
+      </div>
+
+      <!-- Coach's Notes -->
+      <div class="notes-box">
+        <div class="section-label" style="color: var(--primary);">🎯 Coach's Notes & Directives</div>
+        <textarea class="coach-notes-input" id="coach-notes-mon" placeholder="Coach's cues, focus areas, or feedback..." oninput="saveCoachNote('mon', this.value)" onblur="saveCoachNote('mon', this.value)"></textarea>
+      </div>
+
+      <button type="button" class="single-share-btn" onclick="shareSingleWorkout('mon')">
+        💬 Share Monday Boxing with Coach
+      </button>
     </div>
 
-    <!-- Tuesday -->
+    <!-- Tuesday: Rest -->
     <div class="day-card">
       <div class="day-row">
         <div class="day-info">
@@ -138,7 +196,7 @@
       </div>
     </div>
 
-    <!-- Wednesday -->
+    <!-- Wednesday: Hyrox -->
     <div class="day-card">
       <div class="day-row">
         <div class="day-info">
@@ -150,12 +208,32 @@
         </div>
         <button class="check-btn" id="btn-wed" onclick="toggleSession('wed')">✓</button>
       </div>
+
+      <!-- RPE Scale -->
+      <div class="rpe-container">
+        <div class="section-label">⚡ Session RPE / Effort</div>
+        <div class="rpe-chips" id="rpe-chips-wed"></div>
+        <div class="rpe-rating-label" id="rpe-label-wed"></div>
+      </div>
+
+      <!-- Client Notes -->
       <div class="notes-box">
+        <div class="section-label">📝 Client Questions & Notes</div>
         <textarea class="notes-input" id="notes-wed" placeholder="What did you do in Hyrox? (e.g. sleds, 100 lunges, wall balls...)" oninput="saveNote('wed', this.value)" onblur="saveNote('wed', this.value)"></textarea>
       </div>
+
+      <!-- Coach's Notes -->
+      <div class="notes-box">
+        <div class="section-label" style="color: var(--primary);">🎯 Coach's Notes & Directives</div>
+        <textarea class="coach-notes-input" id="coach-notes-wed" placeholder="Target pacing or recovery adjustments..." oninput="saveCoachNote('wed', this.value)" onblur="saveCoachNote('wed', this.value)"></textarea>
+      </div>
+
+      <button type="button" class="single-share-btn" onclick="shareSingleWorkout('wed')">
+        💬 Share Wednesday Hyrox with Coach
+      </button>
     </div>
 
-    <!-- Thursday -->
+    <!-- Thursday: Rest -->
     <div class="day-card">
       <div class="day-row">
         <div class="day-info">
@@ -169,7 +247,7 @@
       </div>
     </div>
 
-    <!-- Friday -->
+    <!-- Friday (Overview link) -->
     <div class="day-card">
       <div class="day-row">
         <div class="day-info">
@@ -181,9 +259,12 @@
         </div>
         <button class="check-btn" id="btn-fri" onclick="toggleSession('fri')">✓</button>
       </div>
+      <button type="button" class="single-share-btn" style="margin-top: 10px;" onclick="switchTab('workout')">
+        🏋️ Go to Friday Strength Tracker & Notes
+      </button>
     </div>
 
-    <!-- Saturday -->
+    <!-- Saturday: Hyrox -->
     <div class="day-card">
       <div class="day-row">
         <div class="day-info">
@@ -195,12 +276,32 @@
         </div>
         <button class="check-btn" id="btn-sat" onclick="toggleSession('sat')">✓</button>
       </div>
+
+      <!-- RPE Scale -->
+      <div class="rpe-container">
+        <div class="section-label">⚡ Session RPE / Effort</div>
+        <div class="rpe-chips" id="rpe-chips-sat"></div>
+        <div class="rpe-rating-label" id="rpe-label-sat"></div>
+      </div>
+
+      <!-- Client Notes -->
       <div class="notes-box">
+        <div class="section-label">📝 Client Questions & Notes</div>
         <textarea class="notes-input" id="notes-sat" placeholder="Saturday Hyrox notes or volume..." oninput="saveNote('sat', this.value)" onblur="saveNote('sat', this.value)"></textarea>
       </div>
+
+      <!-- Coach's Notes -->
+      <div class="notes-box">
+        <div class="section-label" style="color: var(--primary);">🎯 Coach's Notes & Directives</div>
+        <textarea class="coach-notes-input" id="coach-notes-sat" placeholder="Coach's weekend cues..." oninput="saveCoachNote('sat', this.value)" onblur="saveCoachNote('sat', this.value)"></textarea>
+      </div>
+
+      <button type="button" class="single-share-btn" onclick="shareSingleWorkout('sat')">
+        💬 Share Saturday Hyrox with Coach
+      </button>
     </div>
 
-    <!-- Sunday -->
+    <!-- Sunday: Rest -->
     <div class="day-card">
       <div class="day-row">
         <div class="day-info">
@@ -213,15 +314,12 @@
         <span style="font-size: 0.75rem; color: var(--text-muted); padding-right: 8px;">Rest</span>
       </div>
     </div>
-
-    <button type="button" class="whatsapp-btn" onclick="sendWhatsAppSchedule()">
-      💬 Send Week Check-in to Coach
-    </button>
   </div>
 </div>
 
-<!-- TAB 2: FRIDAY STRENGTH -->
+<!-- ================= TAB 2: FRIDAY STRENGTH ================= -->
 <div class="content-area" id="workout-tab" style="display:none;">
+  <!-- Rest Timer -->
   <div class="timer-bar">
     <div>
       <span style="font-size: 0.75rem; color: var(--text-muted); display: block;">REST TIMER</span>
@@ -235,14 +333,74 @@
     </div>
   </div>
 
+  <!-- Exercises Container -->
   <div class="card" id="workout-container"></div>
   
-  <button type="button" class="whatsapp-btn" onclick="sendWhatsAppFridayWorkout()">
-    💬 Send Friday Workout to Coach
+  <button type="button" class="add-ex-btn" onclick="openAddExerciseModal()">
+    ➕ Add New Exercise to This Workout
   </button>
+
+  <!-- Strength Workout Check-in: RPE, Client Notes, Coach Notes -->
+  <div class="card">
+    <div class="card-title">
+      <span>Friday Session Review</span>
+      <span style="font-size:0.75rem; color:var(--primary);">Self-Monitoring</span>
+    </div>
+
+    <!-- RPE Scale -->
+    <div class="rpe-container" style="border:none; margin:0; padding:0;">
+      <div class="section-label">⚡ How Did Today's Lifting Feel? (RPE Scale)</div>
+      <div class="rpe-chips" id="rpe-chips-strength"></div>
+      <div class="rpe-rating-label" id="rpe-label-strength"></div>
+    </div>
+
+    <!-- Client Notes & Questions -->
+    <div class="notes-box" style="margin-top:12px;">
+      <div class="section-label">📝 Client Questions, Problems & Changes</div>
+      <textarea class="notes-input" id="notes-strength" placeholder="Any pain/niggles? Did you change any weights or substitute exercises? Write questions here..." oninput="saveNote('strength', this.value)" onblur="saveNote('strength', this.value)"></textarea>
+    </div>
+
+    <!-- Coach's Notes -->
+    <div class="notes-box" style="margin-top:12px;">
+      <div class="section-label" style="color: var(--primary);">🎯 Coach's Notes & Programming Cues</div>
+      <textarea class="coach-notes-input" id="coach-notes-strength" placeholder="Form cues, tempo reminders, or weight progression directives..." oninput="saveCoachNote('strength', this.value)" onblur="saveCoachNote('strength', this.value)"></textarea>
+    </div>
+
+    <button type="button" class="whatsapp-btn" onclick="shareSingleWorkout('strength')">
+      💬 Share Friday Strength with Coach
+    </button>
+  </div>
+</div>
+
+<!-- ================= MODAL: ADD / EDIT EXERCISE ================= -->
+<div class="modal-overlay" id="exercise-modal">
+  <div class="modal-card">
+    <div class="modal-title" id="modal-title-text">Add Exercise</div>
+    
+    <div class="form-group">
+      <label>Exercise Name</label>
+      <input type="text" class="form-control" id="modal-ex-name" placeholder="e.g. Romanian Deadlift">
+    </div>
+    
+    <div class="form-group">
+      <label>Number of Sets</label>
+      <input type="number" class="form-control" id="modal-ex-sets" min="1" max="10" value="4">
+    </div>
+
+    <div class="form-group">
+      <label>Target Reps / Directive</label>
+      <input type="text" class="form-control" id="modal-ex-reps" placeholder="e.g. 8 reps or 15 reps / leg">
+    </div>
+
+    <div class="modal-actions">
+      <button type="button" class="btn-secondary" onclick="closeExerciseModal()">Cancel</button>
+      <button type="button" class="btn-primary" onclick="saveExerciseFromModal()">Save Exercise</button>
+    </div>
+  </div>
 </div>
 
 <script>
+  // ================= CONFIGURATION =================
   const COACH_PHONE_NUMBER = "447725918315";
 
   const firebaseConfig = {
@@ -264,13 +422,11 @@
     statusEl.innerText = (online ? "🟢 " : "🔴 ") + text;
   }
 
-  // Proper Firebase initialization
   try {
     if (typeof firebase !== 'undefined' && firebase.initializeApp) {
       if (!firebase.apps.length) {
         firebase.initializeApp(firebaseConfig);
       }
-      // Call firebase.database() without arguments to read databaseURL directly from config
       db = firebase.database();
       
       db.ref(".info/connected").on("value", snap => {
@@ -293,9 +449,10 @@
   let timerSeconds = 90;
   let timerRunning = false;
   let appState = {};
+  let editingExerciseIndex = -1;
 
-  // Base exercises: 8 reps for compounds, 15 reps for accessories
-  const workouts = {
+  // Default Base workouts (modifiable anytime via UI)
+  const defaultWorkouts = {
     A: {
       name: "Workout A: Squat & Upper Push",
       exercises: [
@@ -368,6 +525,20 @@
     }
   }
 
+  // Manage workouts data dynamically
+  function getWorkoutData(workoutKey) {
+    const custom = getData("program_" + workoutKey);
+    if (custom && Array.isArray(custom.exercises) && custom.exercises.length > 0) {
+      return custom;
+    }
+    return defaultWorkouts[workoutKey];
+  }
+
+  function saveWorkoutData(workoutKey, workoutObj) {
+    syncData("program_" + workoutKey, workoutObj);
+    renderWorkout();
+  }
+
   function switchTab(tab) {
     const tabSched = document.getElementById('tab-btn-schedule');
     const tabWork = document.getElementById('tab-btn-workout');
@@ -415,8 +586,54 @@
     updateUI();
   }
 
-  function saveNote(day, val) {
-    syncData("note_" + currentWeek + "_" + day, val);
+  function saveNote(session, val) {
+    syncData("note_" + currentWeek + "_" + session, val);
+  }
+
+  function saveCoachNote(session, val) {
+    syncData("coach_note_" + currentWeek + "_" + session, val);
+  }
+
+  // RPE Scale Definitions
+  const rpeLevels = [
+    { val: 1, label: "1 - 😃 Very Easy / Recovery" },
+    { val: 2, label: "2 - 😊 Easy / Warmup pace" },
+    { val: 3, label: "3 - 🙂 Light Effort" },
+    { val: 4, label: "4 - Moderate / Comfortable" },
+    { val: 5, label: "5 - 😐 Noticeable Effort" },
+    { val: 6, label: "6 - Steady / Challenging" },
+    { val: 7, label: "7 - 😤 Vigorous / ~3 reps left" },
+    { val: 8, label: "8 - 😫 Heavy / ~2 reps left" },
+    { val: 9, label: "9 - 🥵 Very Hard / ~1 rep left" },
+    { val: 10, label: "10 - 💀 Maximum Effort / Failure" }
+  ];
+
+  function renderRpeChips(sessionKey) {
+    const container = document.getElementById("rpe-chips-" + sessionKey);
+    const labelEl = document.getElementById("rpe-label-" + sessionKey);
+    if (!container) return;
+
+    const currentVal = parseInt(getData("rpe_" + currentWeek + "_" + sessionKey) || 0);
+
+    let html = '';
+    for (let i = 1; i <= 10; i++) {
+      html += '<button type="button" class="rpe-chip ' + (currentVal === i ? 'selected' : '') + '" onclick="selectRpe(\'' + sessionKey + '\', ' + i + ')">' + i + '</button>';
+    }
+    container.innerHTML = html;
+
+    if (labelEl) {
+      if (currentVal > 0) {
+        const item = rpeLevels.find(r => r.val === currentVal);
+        labelEl.innerText = item ? item.label : "RPE " + currentVal;
+      } else {
+        labelEl.innerText = "Tap 1-10 to rate intensity";
+      }
+    }
+  }
+
+  function selectRpe(sessionKey, val) {
+    syncData("rpe_" + currentWeek + "_" + sessionKey, val);
+    renderRpeChips(sessionKey);
   }
 
   function updateUI() {
@@ -426,15 +643,18 @@
       if (btn) btn.classList.toggle('done', isDone);
     });
 
-    const wedNote = document.getElementById('notes-wed');
-    if (wedNote && document.activeElement !== wedNote) {
-      wedNote.value = getData("note_" + currentWeek + "_wed");
-    }
-
-    const satNote = document.getElementById('notes-sat');
-    if (satNote && document.activeElement !== satNote) {
-      satNote.value = getData("note_" + currentWeek + "_sat");
-    }
+    // Populate notes & coach notes
+    ['mon', 'wed', 'sat', 'strength'].forEach(session => {
+      const noteEl = document.getElementById("notes-" + session);
+      if (noteEl && document.activeElement !== noteEl) {
+        noteEl.value = getData("note_" + currentWeek + "_" + session);
+      }
+      const coachEl = document.getElementById("coach-notes-" + session);
+      if (coachEl && document.activeElement !== coachEl) {
+        coachEl.value = getData("coach_note_" + currentWeek + "_" + session);
+      }
+      renderRpeChips(session);
+    });
 
     let doneCount = 0;
     ['mon', 'wed', 'fri', 'sat'].forEach(d => {
@@ -446,20 +666,10 @@
     renderWorkout();
   }
 
-  function getActiveExercises(workoutKey) {
-    const baseList = workouts[workoutKey].exercises;
-    const savedOrder = getData("order_" + workoutKey);
-    if (savedOrder && Array.isArray(savedOrder)) {
-      const reordered = savedOrder.map(name => baseList.find(e => e.name === name)).filter(Boolean);
-      if (reordered.length === baseList.length) {
-        return reordered;
-      }
-    }
-    return baseList;
-  }
-
+  // Exercise Re-ordering, Add, Edit, Remove
   function moveExercise(workoutKey, index, direction) {
-    const list = [...getActiveExercises(workoutKey)];
+    const workout = getWorkoutData(workoutKey);
+    const list = [...workout.exercises];
     const target = index + direction;
     if (target < 0 || target >= list.length) return;
 
@@ -467,18 +677,83 @@
     list[index] = list[target];
     list[target] = temp;
 
-    syncData("order_" + workoutKey, list.map(e => e.name));
-    renderWorkout();
+    workout.exercises = list;
+    saveWorkoutData(workoutKey, workout);
+  }
+
+  function openAddExerciseModal() {
+    const isWorkoutA = (currentWeek % 2 !== 0);
+    const workoutKey = isWorkoutA ? 'A' : 'B';
+    editingExerciseIndex = -1;
+    document.getElementById('modal-title-text').innerText = "Add Exercise (" + (workoutKey === 'A' ? "Workout A" : "Workout B") + ")";
+    document.getElementById('modal-ex-name').value = "";
+    document.getElementById('modal-ex-sets').value = "4";
+    document.getElementById('modal-ex-reps').value = "8 reps";
+    document.getElementById('exercise-modal').style.display = "flex";
+  }
+
+  function openEditExerciseModal(index) {
+    const isWorkoutA = (currentWeek % 2 !== 0);
+    const workoutKey = isWorkoutA ? 'A' : 'B';
+    const workout = getWorkoutData(workoutKey);
+    const ex = workout.exercises[index];
+    if (!ex) return;
+
+    editingExerciseIndex = index;
+    document.getElementById('modal-title-text').innerText = "Edit Exercise";
+    document.getElementById('modal-ex-name').value = ex.name;
+    document.getElementById('modal-ex-sets').value = ex.sets;
+    document.getElementById('modal-ex-reps').value = ex.reps;
+    document.getElementById('exercise-modal').style.display = "flex";
+  }
+
+  function closeExerciseModal() {
+    document.getElementById('exercise-modal').style.display = "none";
+  }
+
+  function saveExerciseFromModal() {
+    const name = document.getElementById('modal-ex-name').value.trim();
+    const sets = parseInt(document.getElementById('modal-ex-sets').value) || 3;
+    const reps = document.getElementById('modal-ex-reps').value.trim() || "8 reps";
+
+    if (!name) {
+      alert("Please enter an exercise name");
+      return;
+    }
+
+    const isWorkoutA = (currentWeek % 2 !== 0);
+    const workoutKey = isWorkoutA ? 'A' : 'B';
+    const workout = getWorkoutData(workoutKey);
+
+    if (editingExerciseIndex === -1) {
+      workout.exercises.push({ name, sets, reps });
+    } else {
+      workout.exercises[editingExerciseIndex] = { name, sets, reps };
+    }
+
+    saveWorkoutData(workoutKey, workout);
+    closeExerciseModal();
+  }
+
+  function deleteExercise(index) {
+    const isWorkoutA = (currentWeek % 2 !== 0);
+    const workoutKey = isWorkoutA ? 'A' : 'B';
+    const workout = getWorkoutData(workoutKey);
+    const ex = workout.exercises[index];
+    if (!ex) return;
+
+    if (confirm("Are you sure you want to remove '" + ex.name + "' from " + workout.name + "?")) {
+      workout.exercises.splice(index, 1);
+      saveWorkoutData(workoutKey, workout);
+    }
   }
 
   function renderWorkout() {
     const isWorkoutA = (currentWeek % 2 !== 0);
     const workoutKey = isWorkoutA ? 'A' : 'B';
-    const workout = workouts[workoutKey];
+    const workout = getWorkoutData(workoutKey);
     const container = document.getElementById('workout-container');
     if (!container) return;
-
-    const exerciseList = getActiveExercises(workoutKey);
 
     let html = '<div class="card-title"><div>' +
       '<span>' + workout.name + '</span>' +
@@ -486,7 +761,7 @@
       'Week ' + currentWeek + ': Focus on solid form & strict rest' +
       '</span></div></div>';
 
-    exerciseList.forEach((ex, exIdx) => {
+    workout.exercises.forEach((ex, exIdx) => {
       const exSlug = ex.name.replace(/[^a-zA-Z0-9]/g, '_').toLowerCase();
 
       html += '<div class="exercise-box">' +
@@ -495,9 +770,11 @@
             '<span class="ex-name">' + ex.name + '</span>' +
             '<span class="ex-meta">' + ex.sets + ' × ' + ex.reps + '</span>' +
           '</div>' +
-          '<div class="move-btn-group">' +
-            (exIdx > 0 ? '<button type="button" class="move-btn" onclick="moveExercise(\'' + workoutKey + '\', ' + exIdx + ', -1)">▲</button>' : '') +
-            (exIdx < exerciseList.length - 1 ? '<button type="button" class="move-btn" onclick="moveExercise(\'' + workoutKey + '\', ' + exIdx + ', 1)">▼</button>' : '') +
+          '<div class="action-group">' +
+            (exIdx > 0 ? '<button type="button" title="Move Up" class="icon-btn" onclick="moveExercise(\'' + workoutKey + '\', ' + exIdx + ', -1)">▲</button>' : '') +
+            (exIdx < workout.exercises.length - 1 ? '<button type="button" title="Move Down" class="icon-btn" onclick="moveExercise(\'' + workoutKey + '\', ' + exIdx + ', 1)">▼</button>' : '') +
+            '<button type="button" title="Edit Exercise" class="icon-btn edit" onclick="openEditExerciseModal(' + exIdx + ')">✏️</button>' +
+            '<button type="button" title="Remove Exercise" class="icon-btn delete" onclick="deleteExercise(' + exIdx + ')">✕</button>' +
           '</div>' +
         '</div>';
 
@@ -568,38 +845,65 @@
     }
   }
 
-  function sendWhatsAppSchedule() {
-    const wedNote = getData("note_" + currentWeek + "_wed");
-    const satNote = getData("note_" + currentWeek + "_sat");
-    
-    let msg = "*Training Update - Week " + currentWeek + "*\n\n";
-    msg += "🥊 Mon Boxing: " + (getData("session_" + currentWeek + "_mon") === '1' ? '✅ Completed' : '⬜ Pending') + "\n";
-    msg += "🏃 Wed Hyrox: " + (getData("session_" + currentWeek + "_wed") === '1' ? '✅ Completed' : '⬜ Pending') + "\n";
-    if (wedNote) msg += "   _Wed Notes:_ " + wedNote + "\n";
-    msg += "🏋️ Fri Strength: " + (getData("session_" + currentWeek + "_fri") === '1' ? '✅ Completed' : '⬜ Pending') + "\n";
-    msg += "🏃 Sat Hyrox: " + (getData("session_" + currentWeek + "_sat") === '1' ? '✅ Completed' : '⬜ Pending') + "\n";
-    if (satNote) msg += "   _Sat Notes:_ " + satNote + "\n";
+  // ================= SINGLE-WORKOUT SHARE (WHATSAPP) =================
+  function shareSingleWorkout(sessionKey) {
+    let title = "";
+    let isStrength = (sessionKey === 'strength' || sessionKey === 'fri');
 
-    window.open("https://wa.me/" + COACH_PHONE_NUMBER + "?text=" + encodeURIComponent(msg), "_blank");
-  }
+    if (sessionKey === 'mon') title = "🥊 Monday Boxing Session";
+    else if (sessionKey === 'wed') title = "🏃 Wednesday Hyrox Conditioning";
+    else if (sessionKey === 'sat') title = "🏃 Saturday Hyrox Endurance";
+    else if (isStrength) {
+      const isWorkoutA = (currentWeek % 2 !== 0);
+      title = "🏋️ Friday Strength (" + (isWorkoutA ? "Workout A" : "Workout B") + ")";
+    }
 
-  function sendWhatsAppFridayWorkout() {
-    const isWorkoutA = (currentWeek % 2 !== 0);
-    const workoutKey = isWorkoutA ? 'A' : 'B';
-    const exerciseList = getActiveExercises(workoutKey);
+    const clientNote = getData("note_" + currentWeek + "_" + sessionKey);
+    const coachNote = getData("coach_note_" + currentWeek + "_" + sessionKey);
+    const rpeVal = getData("rpe_" + currentWeek + "_" + sessionKey);
+    const rpeObj = rpeLevels.find(r => r.val === parseInt(rpeVal));
+
+    let msg = "*" + title + " - Week " + currentWeek + "*\n\n";
     
-    let msg = "*Friday Strength Completed - Week " + currentWeek + " (" + (isWorkoutA ? "Workout A" : "Workout B") + ")*\n\n";
-    exerciseList.forEach(ex => {
-      const exSlug = ex.name.replace(/[^a-zA-Z0-9]/g, '_').toLowerCase();
-      msg += "*" + ex.name + "*\n";
-      for (let s = 1; s <= ex.sets; s++) {
-        const wt = getData("w_" + currentWeek + "_" + exSlug + "_s" + s + "_wt");
-        const rp = getData("w_" + currentWeek + "_" + exSlug + "_s" + s + "_rp");
-        if (wt || rp) {
-          msg += "  Set " + s + ": " + (wt ? wt + 'kg' : '') + " " + (rp ? 'x ' + rp + ' reps' : '') + "\n";
+    if (!isStrength) {
+      const isDone = getData("session_" + currentWeek + "_" + sessionKey) === '1';
+      msg += "Status: " + (isDone ? "✅ Completed" : "⬜ Logged") + "\n";
+    }
+
+    if (rpeVal) {
+      msg += "⚡ RPE Effort: " + (rpeObj ? rpeObj.label : rpeVal + "/10") + "\n";
+    }
+
+    if (clientNote) {
+      msg += "\n📝 *Client Notes / Questions:*\n" + clientNote + "\n";
+    }
+
+    if (coachNote) {
+      msg += "\n🎯 *Coach Notes / Feedback:*\n" + coachNote + "\n";
+    }
+
+    // If strength, append exercise numbers
+    if (isStrength) {
+      const isWorkoutA = (currentWeek % 2 !== 0);
+      const workoutKey = isWorkoutA ? 'A' : 'B';
+      const workout = getWorkoutData(workoutKey);
+      
+      msg += "\n📊 *Logged Exercises:*\n";
+      workout.exercises.forEach(ex => {
+        const exSlug = ex.name.replace(/[^a-zA-Z0-9]/g, '_').toLowerCase();
+        let setsLogged = [];
+        for (let s = 1; s <= ex.sets; s++) {
+          const wt = getData("w_" + currentWeek + "_" + exSlug + "_s" + s + "_wt");
+          const rp = getData("w_" + currentWeek + "_" + exSlug + "_s" + s + "_rp");
+          if (wt || rp) {
+            setsLogged.push("S" + s + ": " + (wt ? wt + 'kg' : '') + (rp ? ' x ' + rp : ''));
+          }
         }
-      }
-    });
+        if (setsLogged.length > 0) {
+          msg += "• *" + ex.name + "*: " + setsLogged.join(", ") + "\n";
+        }
+      });
+    }
 
     window.open("https://wa.me/" + COACH_PHONE_NUMBER + "?text=" + encodeURIComponent(msg), "_blank");
   }
