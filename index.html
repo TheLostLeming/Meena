@@ -796,7 +796,7 @@
 
     let html = '';
     for (let i = 1; i <= 10; i++) {
-      html += '<button type="button" class="rpe-chip ' + (currentVal === i ? 'selected' : '') + '" onclick="toggleRpe(\\'' + sessionKey + '\\', ' + i + ')">' + i + '</button>';
+      html += '<button type="button" class="rpe-chip ' + (currentVal === i ? 'selected' : '') + '" onclick="toggleRpe(\'' + sessionKey + '\', ' + i + ')">' + i + '</button>';
     }
     container.innerHTML = html;
 
@@ -986,8 +986,8 @@
             '<span class="ex-meta">' + ex.sets + ' × ' + ex.reps + '</span>' +
           '</div>' +
           '<div class="action-group">' +
-            (exIdx > 0 ? '<button type="button" title="Move Up" class="icon-btn" onclick="moveExercise(\\'' + workoutKey + '\\', ' + exIdx + ', -1)">▲</button>' : '') +
-            (exIdx < workout.exercises.length - 1 ? '<button type="button" title="Move Down" class="icon-btn" onclick="moveExercise(\\'' + workoutKey + '\\', ' + exIdx + ', 1)">▼</button>' : '') +
+            (exIdx > 0 ? '<button type="button" title="Move Up" class="icon-btn" onclick="moveExercise(\'' + workoutKey + '\', ' + exIdx + ', -1)">▲</button>' : '') +
+            (exIdx < workout.exercises.length - 1 ? '<button type="button" title="Move Down" class="icon-btn" onclick="moveExercise(\'' + workoutKey + '\', ' + exIdx + ', 1)">▼</button>' : '') +
             '<button type="button" title="Edit Exercise" class="icon-btn edit" onclick="openEditExerciseModal(' + exIdx + ')">✏️</button>' +
             '<button type="button" title="Remove Exercise" class="icon-btn delete" onclick="deleteExercise(' + exIdx + ')">✕</button>' +
           '</div>' +
@@ -1004,9 +1004,9 @@
 
         html += '<div class="set-row">' +
           '<span class="set-num">Set ' + s + '</span>' +
-          '<input type="text" class="log-input" placeholder="kg" value="' + savedWeight + '" onchange="syncData(\\'' + wtKey + '\\', this.value)">' +
-          '<input type="text" class="log-input" placeholder="reps" value="' + savedRep + '" onchange="syncData(\\'' + rpKey + '\\', this.value)">' +
-          '<button class="set-check ' + (isDone ? 'done' : '') + '" onclick="toggleSet(\\'' + doneKey + '\\', this)">✓</button>' +
+          '<input type="text" class="log-input" placeholder="kg" value="' + savedWeight + '" onchange="syncData(\'' + wtKey + '\', this.value)">' +
+          '<input type="text" class="log-input" placeholder="reps" value="' + savedRep + '" onchange="syncData(\'' + rpKey + '\', this.value)">' +
+          '<button class="set-check ' + (isDone ? 'done' : '') + '" onclick="toggleSet(\'' + doneKey + '\', this)">✓</button>' +
           '</div>';
       }
       html += '</div>';
@@ -1080,23 +1080,23 @@
     const rpeVal = getData("rpe_" + currentWeek + "_" + sessionKey);
     const rpeObj = rpeLevels.find(r => r.val === parseInt(rpeVal));
 
-    let msg = "*" + title + " - Week " + currentWeek + "*\\n\\n";
+    let msg = "*" + title + " - Week " + currentWeek + "*\n\n";
     
     if (!isStrength) {
       const isDone = getData("session_" + currentWeek + "_" + sessionKey) === '1';
-      msg += "Status: " + (isDone ? "✅ Completed / Checked" : "⬜ Logged") + "\\n";
+      msg += "Status: " + (isDone ? "✅ Completed / Checked" : "⬜ Logged") + "\n";
     }
 
     if (rpeVal && parseInt(rpeVal) > 0) {
-      msg += "⚡ RPE Effort / Strain: " + (rpeObj ? rpeObj.label : rpeVal + "/10") + "\\n";
+      msg += "⚡ RPE Effort / Strain: " + (rpeObj ? rpeObj.label : rpeVal + "/10") + "\n";
     }
 
     if (clientNote) {
-      msg += "\\n📝 *Client Notes / Questions:*\\n" + clientNote + "\\n";
+      msg += "\n📝 *Client Notes / Questions:*\n" + clientNote + "\n";
     }
 
     if (coachNote) {
-      msg += "\\n🎯 *Coach Notes / Directives:*\\n" + coachNote + "\\n";
+      msg += "\n🎯 *Coach Notes / Directives:*\n" + coachNote + "\n";
     }
 
     if (isStrength) {
@@ -1104,7 +1104,7 @@
       const workoutKey = isWorkoutA ? 'A' : 'B';
       const workout = getWorkoutData(workoutKey);
       
-      msg += "\\n📊 *Logged Exercises:*\\n";
+      msg += "\n📊 *Logged Exercises:*\n";
       let loggedCount = 0;
       workout.exercises.forEach(ex => {
         const exSlug = ex.name.replace(/[^a-zA-Z0-9]/g, '_').toLowerCase();
@@ -1118,11 +1118,11 @@
         }
         if (setsLogged.length > 0) {
           loggedCount++;
-          msg += "• *" + ex.name + "*\\n   " + setsLogged.join(", ") + "\\n";
+          msg += "• *" + ex.name + "*\n   " + setsLogged.join(", ") + "\n";
         }
       });
       if (loggedCount === 0) {
-        msg += "_(No exercise weights logged yet)_\\n";
+        msg += "_(No exercise weights logged yet)_\n";
       }
     }
 
