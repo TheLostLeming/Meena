@@ -62,9 +62,15 @@
     .t-btn.start { background: var(--accent); color: #000; }
     
     .exercise-box { background: rgba(15, 23, 42, 0.7); border-radius: 10px; padding: 14px; margin-bottom: 12px; border: 1px solid rgba(255,255,255,0.06); }
-    .ex-header { display: flex; justify-content: space-between; margin-bottom: 10px; align-items: baseline; }
+    .ex-header { display: flex; justify-content: space-between; margin-bottom: 10px; align-items: center; }
+    .ex-title-wrap { display: flex; align-items: baseline; gap: 8px; }
     .ex-name { font-weight: 700; font-size: 0.95rem; color: #fff; }
     .ex-meta { font-size: 0.8rem; color: var(--primary); font-weight: 600; }
+    
+    .move-btn-group { display: flex; gap: 4px; }
+    .move-btn { background: var(--card-sub); border: 1px solid var(--border); color: var(--text-muted); width: 26px; height: 26px; border-radius: 6px; cursor: pointer; font-size: 0.7rem; line-height: 1; display: inline-flex; align-items: center; justify-content: center; }
+    .move-btn:active { background: var(--primary); color: #000; }
+
     .set-row { display: grid; grid-template-columns: 42px 1fr 1fr 36px; gap: 8px; align-items: center; margin-bottom: 6px; }
     .set-num { font-size: 0.75rem; color: var(--text-muted); font-weight: 600; }
     .log-input { background: var(--card-bg); border: 1px solid var(--border); color: #fff; border-radius: 6px; padding: 6px 8px; font-size: 0.85rem; text-align: center; }
@@ -145,7 +151,7 @@
         <button class="check-btn" id="btn-wed" onclick="toggleSession('wed')">✓</button>
       </div>
       <div class="notes-box">
-        <textarea class="notes-input" id="notes-wed" placeholder="What did you do in Hyrox? (e.g. sleds, 100 lunges, wall balls...)" oninput="saveNote('wed', this.value)"></textarea>
+        <textarea class="notes-input" id="notes-wed" placeholder="What did you do in Hyrox? (e.g. sleds, 100 lunges, wall balls...)" oninput="saveNote('wed', this.value)" onblur="saveNote('wed', this.value)"></textarea>
       </div>
     </div>
 
@@ -190,7 +196,7 @@
         <button class="check-btn" id="btn-sat" onclick="toggleSession('sat')">✓</button>
       </div>
       <div class="notes-box">
-        <textarea class="notes-input" id="notes-sat" placeholder="Saturday Hyrox notes or volume..." oninput="saveNote('sat', this.value)"></textarea>
+        <textarea class="notes-input" id="notes-sat" placeholder="Saturday Hyrox notes or volume..." oninput="saveNote('sat', this.value)" onblur="saveNote('sat', this.value)"></textarea>
       </div>
     </div>
 
@@ -282,7 +288,7 @@
   let timerRunning = false;
   let appState = {};
 
-  // ================= WORKOUT DEFINITIONS (Clean 8 Reps & 15 Reps) =================
+  // Base exercises: 8 reps for compounds, 15 reps for accessories
   const workouts = {
     A: {
       name: "Workout A: Squat & Upper Push",
@@ -305,9 +311,17 @@
       ]
     }
   };
-  // ==============================================================================
 
+  // Two-way synchronization
   if (db) {
+    db.ref("client_training_data").once("value").then(snap => {
+      const data = snap.val();
+      if (data) {
+        appState = data;
+        updateUI();
+      }
+    }).catch(err => console.warn("Initial load notice:", err));
+
     db.ref("client_training_data").on("value", snapshot => {
       const data = snapshot.val();
       if (data) {
@@ -315,7 +329,7 @@
         updateUI();
       }
     }, err => {
-      console.warn("Database sync error:", err);
+      console.warn("Live sync error:", err);
       setOnlineStatus(false, "URL Mismatch");
     });
   }
@@ -333,7 +347,11 @@
   function getData(key) {
     if (appState[key] !== undefined && appState[key] !== null) return appState[key];
     try {
-      return localStorage.getItem(key) || '';
+      const stored = localStorage.getItem(key);
+      if (stored && (stored.startsWith('{') || stored.startsWith('['))) {
+        return JSON.parse(stored);
+      }
+      return stored || '';
     } catch (e) {
       return '';
     }
@@ -394,150 +412,4 @@
     ['mon', 'wed', 'fri', 'sat'].forEach(day => {
       const isDone = getData("session_" + currentWeek + "_" + day) === '1';
       const btn = document.getElementById("btn-" + day);
-      if (btn) btn.classList.toggle('done', isDone);
-    });
-
-    const wedNote = document.getElementById('notes-wed');
-    if (wedNote && document.activeElement !== wedNote) {
-      wedNote.value = getData("note_" + currentWeek + "_wed");
-    }
-
-    const satNote = document.getElementById('notes-sat');
-    if (satNote && document.activeElement !== satNote) {
-      satNote.value = getData("note_" + currentWeek + "_sat");
-    }
-
-    let doneCount = 0;
-    ['mon', 'wed', 'fri', 'sat'].forEach(d => {
-      if (getData("session_" + currentWeek + "_" + d) === '1') doneCount++;
-    });
-    const statEl = document.getElementById('completion-stat');
-    if (statEl) statEl.innerText = doneCount + "/4 Done";
-
-    renderWorkout();
-  }
-
-  function renderWorkout() {
-    const isWorkoutA = (currentWeek % 2 !== 0);
-    const workout = isWorkoutA ? workouts.A : workouts.B;
-    const container = document.getElementById('workout-container');
-    if (!container) return;
-
-    let html = '<div class="card-title"><div>' +
-      '<span>' + workout.name + '</span>' +
-      '<span style="font-size:0.75rem; color:var(--text-muted); display:block; font-weight:normal; margin-top:4px;">' +
-      'Week ' + currentWeek + ': Focus on solid form & strict rest' +
-      '</span></div></div>';
-
-    workout.exercises.forEach((ex, exIdx) => {
-      html += '<div class="exercise-box">' +
-        '<div class="ex-header">' +
-        '<span class="ex-name">' + ex.name + '</span>' +
-        '<span class="ex-meta">' + ex.sets + ' sets × ' + ex.reps + '</span>' +
-        '</div>';
-
-      for (let s = 1; s <= ex.sets; s++) {
-        const wtKey = "w_" + currentWeek + "_" + (isWorkoutA ? 'A' : 'B') + "_ex" + exIdx + "_s" + s + "_wt";
-        const rpKey = "w_" + currentWeek + "_" + (isWorkoutA ? 'A' : 'B') + "_ex" + exIdx + "_s" + s + "_rp";
-        const doneKey = "w_" + currentWeek + "_" + (isWorkoutA ? 'A' : 'B') + "_ex" + exIdx + "_s" + s + "_done";
-
-        const savedWeight = getData(wtKey);
-        const savedRep = getData(rpKey);
-        const isDone = getData(doneKey) === '1';
-
-        html += '<div class="set-row">' +
-          '<span class="set-num">Set ' + s + '</span>' +
-          '<input type="text" class="log-input" placeholder="kg" value="' + savedWeight + '" onchange="syncData(\'' + wtKey + '\', this.value)">' +
-          '<input type="text" class="log-input" placeholder="reps" value="' + savedRep + '" onchange="syncData(\'' + rpKey + '\', this.value)">' +
-          '<button class="set-check ' + (isDone ? 'done' : '') + '" onclick="toggleSet(\'' + doneKey + '\', this)">✓</button>' +
-          '</div>';
-      }
-      html += '</div>';
-    });
-
-    container.innerHTML = html;
-  }
-
-  function toggleSet(key, btn) {
-    const isDone = getData(key) === '1';
-    syncData(key, isDone ? '0' : '1');
-    if (!isDone) {
-      setTimer(90);
-      if (!timerRunning) toggleTimer();
-    }
-    updateUI();
-  }
-
-  function setTimer(secs) {
-    timerSeconds = secs;
-    updateTimerDisplay();
-  }
-
-  function updateTimerDisplay() {
-    const m = Math.floor(timerSeconds / 60).toString().padStart(2, '0');
-    const s = (timerSeconds % 60).toString().padStart(2, '0');
-    const el = document.getElementById('time-left');
-    if (el) el.innerText = m + ":" + s;
-  }
-
-  function toggleTimer() {
-    const btn = document.getElementById('timer-toggle-btn');
-    if (timerRunning) {
-      clearInterval(timerInterval);
-      timerRunning = false;
-      if (btn) { btn.innerText = "Start"; btn.classList.add('start'); }
-    } else {
-      timerRunning = true;
-      if (btn) { btn.innerText = "Pause"; btn.classList.remove('start'); }
-      timerInterval = setInterval(() => {
-        if (timerSeconds > 0) {
-          timerSeconds--;
-          updateTimerDisplay();
-        } else {
-          clearInterval(timerInterval);
-          timerRunning = false;
-          if (btn) { btn.innerText = "Start"; btn.classList.add('start'); }
-          if (navigator.vibrate) navigator.vibrate([200, 100, 200]);
-        }
-      }, 1000);
-    }
-  }
-
-  function sendWhatsAppSchedule() {
-    const wedNote = getData("note_" + currentWeek + "_wed");
-    const satNote = getData("note_" + currentWeek + "_sat");
-    
-    let msg = "*Training Update - Week " + currentWeek + "*\n\n";
-    msg += "🥊 Mon Boxing: " + (getData("session_" + currentWeek + "_mon") === '1' ? '✅ Completed' : '⬜ Pending') + "\n";
-    msg += "🏃 Wed Hyrox: " + (getData("session_" + currentWeek + "_wed") === '1' ? '✅ Completed' : '⬜ Pending') + "\n";
-    if (wedNote) msg += "   _Wed Notes:_ " + wedNote + "\n";
-    msg += "🏋️ Fri Strength: " + (getData("session_" + currentWeek + "_fri") === '1' ? '✅ Completed' : '⬜ Pending') + "\n";
-    msg += "🏃 Sat Hyrox: " + (getData("session_" + currentWeek + "_sat") === '1' ? '✅ Completed' : '⬜ Pending') + "\n";
-    if (satNote) msg += "   _Sat Notes:_ " + satNote + "\n";
-
-    window.open("https://wa.me/" + COACH_PHONE_NUMBER + "?text=" + encodeURIComponent(msg), "_blank");
-  }
-
-  function sendWhatsAppFridayWorkout() {
-    const isWorkoutA = (currentWeek % 2 !== 0);
-    const workout = isWorkoutA ? workouts.A : workouts.B;
-    
-    let msg = "*Friday Strength Completed - Week " + currentWeek + " (" + (isWorkoutA ? "Workout A" : "Workout B") + ")*\n\n";
-    workout.exercises.forEach((ex, exIdx) => {
-      msg += "*" + ex.name + "*\n";
-      for (let s = 1; s <= ex.sets; s++) {
-        const wt = getData("w_" + currentWeek + "_" + (isWorkoutA ? 'A' : 'B') + "_ex" + exIdx + "_s" + s + "_wt");
-        const rp = getData("w_" + currentWeek + "_" + (isWorkoutA ? 'A' : 'B') + "_ex" + exIdx + "_s" + s + "_rp");
-        if (wt || rp) {
-          msg += "  Set " + s + ": " + (wt ? wt + 'kg' : '') + " " + (rp ? 'x ' + rp + ' reps' : '') + "\n";
-        }
-      }
-    });
-
-    window.open("https://wa.me/" + COACH_PHONE_NUMBER + "?text=" + encodeURIComponent(msg), "_blank");
-  }
-
-  setWeek(1);
-</script>
-</body>
-</html>
+      if (btn) btn.classList.
