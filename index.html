@@ -54,6 +54,12 @@
     .tag-str { background: rgba(56, 189, 248, 0.2); color: var(--primary); }
     .tag-rest { background: rgba(148, 163, 184, 0.2); color: var(--text-muted); }
     
+    .day-title-wrap { display: flex; align-items: center; gap: 6px; }
+    .day-title-text { font-weight: 600; font-size: 0.9rem; }
+    .day-sub-text { font-size: 0.75rem; color: var(--text-muted); margin-top: 1px; }
+    .edit-day-btn { background: none; border: none; color: var(--text-muted); cursor: pointer; font-size: 0.72rem; padding: 2px 4px; border-radius: 4px; line-height: 1; }
+    .edit-day-btn:hover { color: var(--primary); background: rgba(56, 189, 248, 0.1); }
+
     .check-btn { width: 34px; height: 34px; border-radius: 50%; border: 2px solid var(--border); background: transparent; cursor: pointer; display: flex; align-items: center; justify-content: center; color: transparent; font-weight: bold; transition: all 0.2s; }
     .check-btn.done { background: var(--accent); border-color: var(--accent); color: #000; }
     
@@ -108,7 +114,7 @@
     .add-ex-btn { width: 100%; padding: 10px; background: rgba(56, 189, 248, 0.1); border: 1px dashed var(--primary); color: var(--primary); border-radius: 8px; font-weight: 700; font-size: 0.85rem; cursor: pointer; margin-top: 4px; margin-bottom: 16px; }
     .add-ex-btn:hover { background: rgba(56, 189, 248, 0.2); }
 
-    /* Modal for Add / Edit Exercise */
+    /* Modals */
     .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.75); display: none; align-items: center; justify-content: center; z-index: 100; padding: 16px; }
     .modal-card { background: var(--card-bg); border: 1px solid var(--border); border-radius: 12px; max-width: 420px; width: 100%; padding: 18px; }
     .modal-title { font-size: 1.05rem; font-weight: 700; margin-bottom: 12px; }
@@ -150,20 +156,23 @@
       <span style="font-size: 0.8rem; color: var(--accent);" id="completion-stat">0/4 Done</span>
     </div>
     
-    <!-- Monday: Boxing -->
-    <div class="day-card">
+    <!-- Monday -->
+    <div class="day-card" id="card-mon">
       <div class="day-row">
         <div class="day-info">
-          <span class="day-tag tag-box">MON</span>
+          <span class="day-tag tag-box" id="tag-mon">MON</span>
           <div>
-            <div style="font-weight: 600; font-size: 0.9rem;">Boxing Session</div>
-            <div style="font-size: 0.75rem; color: var(--text-muted);">1-on-1 with PT</div>
+            <div class="day-title-wrap">
+              <span class="day-title-text" id="title-mon">Boxing Session</span>
+              <button type="button" class="edit-day-btn" title="Edit Activity" onclick="openEditActivityModal('mon')">✏️</button>
+            </div>
+            <div class="day-sub-text" id="sub-mon">1-on-1 with PT</div>
           </div>
         </div>
         <button class="check-btn" id="btn-mon" onclick="toggleSession('mon')">✓</button>
       </div>
 
-      <!-- RPE Scale with Toggle / Clear -->
+      <!-- RPE Scale -->
       <div class="rpe-container">
         <div class="rpe-header">
           <span class="section-label" style="margin:0;">⚡ Session RPE / Effort</span>
@@ -185,25 +194,27 @@
         <textarea class="coach-notes-input" id="coach-notes-mon" placeholder="Coach's cues, focus areas, or feedback..." oninput="saveCoachNote('mon', this.value)" onblur="saveCoachNote('mon', this.value)"></textarea>
       </div>
 
-      <button type="button" class="single-share-btn" onclick="shareSingleWorkout('mon')">
+      <button type="button" class="single-share-btn" id="share-btn-mon" onclick="shareSingleWorkout('mon')">
         💬 Share Monday Boxing with Coach
       </button>
     </div>
 
-    <!-- Tuesday: Mobility & Rest -->
-    <div class="day-card">
+    <!-- Tuesday -->
+    <div class="day-card" id="card-tue">
       <div class="day-row">
         <div class="day-info">
-          <span class="day-tag tag-rest">TUE</span>
+          <span class="day-tag tag-rest" id="tag-tue">TUE</span>
           <div>
-            <div style="font-weight: 600; font-size: 0.9rem;">Mobility & Rest</div>
-            <div style="font-size: 0.75rem; color: var(--text-muted);">Light walk & active recovery</div>
+            <div class="day-title-wrap">
+              <span class="day-title-text" id="title-tue">Mobility & Rest</span>
+              <button type="button" class="edit-day-btn" title="Edit Activity" onclick="openEditActivityModal('tue')">✏️</button>
+            </div>
+            <div class="day-sub-text" id="sub-tue">Light walk & active recovery</div>
           </div>
         </div>
         <button class="check-btn" id="btn-tue" onclick="toggleSession('tue')">✓</button>
       </div>
 
-      <!-- RPE Scale -->
       <div class="rpe-container">
         <div class="rpe-header">
           <span class="section-label" style="margin:0;">⚡ Recovery RPE / Strain</span>
@@ -213,37 +224,37 @@
         <div class="rpe-rating-label" id="rpe-label-tue"></div>
       </div>
 
-      <!-- Client Notes -->
       <div class="notes-box">
         <div class="section-label">📝 Rest Day Activity & Notes</div>
         <textarea class="notes-input" id="notes-tue" placeholder="Any extra walks, mobility, or notes on how your body is recovering?..." oninput="saveNote('tue', this.value)" onblur="saveNote('tue', this.value)"></textarea>
       </div>
 
-      <!-- Coach's Notes -->
       <div class="notes-box">
         <div class="section-label" style="color: var(--primary);">🎯 Coach's Recovery Directives</div>
         <textarea class="coach-notes-input" id="coach-notes-tue" placeholder="Mobility suggestions or recovery instructions..." oninput="saveCoachNote('tue', this.value)" onblur="saveCoachNote('tue', this.value)"></textarea>
       </div>
 
-      <button type="button" class="single-share-btn" onclick="shareSingleWorkout('tue')">
-        💬 Share Tuesday Rest / Recovery with Coach
+      <button type="button" class="single-share-btn" id="share-btn-tue" onclick="shareSingleWorkout('tue')">
+        💬 Share Tuesday Activity with Coach
       </button>
     </div>
 
-    <!-- Wednesday: Hyrox -->
-    <div class="day-card">
+    <!-- Wednesday -->
+    <div class="day-card" id="card-wed">
       <div class="day-row">
         <div class="day-info">
-          <span class="day-tag tag-hyrox">WED</span>
+          <span class="day-tag tag-hyrox" id="tag-wed">WED</span>
           <div>
-            <div style="font-weight: 600; font-size: 0.9rem;">Hyrox Conditioning</div>
-            <div style="font-size: 0.75rem; color: var(--text-muted);">Group engine session</div>
+            <div class="day-title-wrap">
+              <span class="day-title-text" id="title-wed">Hyrox Conditioning</span>
+              <button type="button" class="edit-day-btn" title="Edit Activity" onclick="openEditActivityModal('wed')">✏️</button>
+            </div>
+            <div class="day-sub-text" id="sub-wed">Group engine session</div>
           </div>
         </div>
         <button class="check-btn" id="btn-wed" onclick="toggleSession('wed')">✓</button>
       </div>
 
-      <!-- RPE Scale -->
       <div class="rpe-container">
         <div class="rpe-header">
           <span class="section-label" style="margin:0;">⚡ Session RPE / Effort</span>
@@ -253,37 +264,37 @@
         <div class="rpe-rating-label" id="rpe-label-wed"></div>
       </div>
 
-      <!-- Client Notes -->
       <div class="notes-box">
         <div class="section-label">📝 Client Questions & Notes</div>
         <textarea class="notes-input" id="notes-wed" placeholder="What did you do in Hyrox? (e.g. sleds, 100 lunges, wall balls...)" oninput="saveNote('wed', this.value)" onblur="saveNote('wed', this.value)"></textarea>
       </div>
 
-      <!-- Coach's Notes -->
       <div class="notes-box">
         <div class="section-label" style="color: var(--primary);">🎯 Coach's Notes & Directives</div>
         <textarea class="coach-notes-input" id="coach-notes-wed" placeholder="Target pacing or recovery adjustments..." oninput="saveCoachNote('wed', this.value)" onblur="saveCoachNote('wed', this.value)"></textarea>
       </div>
 
-      <button type="button" class="single-share-btn" onclick="shareSingleWorkout('wed')">
+      <button type="button" class="single-share-btn" id="share-btn-wed" onclick="shareSingleWorkout('wed')">
         💬 Share Wednesday Hyrox with Coach
       </button>
     </div>
 
-    <!-- Thursday: Full Rest -->
-    <div class="day-card">
+    <!-- Thursday -->
+    <div class="day-card" id="card-thu">
       <div class="day-row">
         <div class="day-info">
-          <span class="day-tag tag-rest">THU</span>
+          <span class="day-tag tag-rest" id="tag-thu">THU</span>
           <div>
-            <div style="font-weight: 600; font-size: 0.9rem;">Full Rest</div>
-            <div style="font-size: 0.75rem; color: var(--text-muted);">Fuel up for Friday weights</div>
+            <div class="day-title-wrap">
+              <span class="day-title-text" id="title-thu">Full Rest</span>
+              <button type="button" class="edit-day-btn" title="Edit Activity" onclick="openEditActivityModal('thu')">✏️</button>
+            </div>
+            <div class="day-sub-text" id="sub-thu">Fuel up for Friday weights</div>
           </div>
         </div>
         <button class="check-btn" id="btn-thu" onclick="toggleSession('thu')">✓</button>
       </div>
 
-      <!-- RPE Scale -->
       <div class="rpe-container">
         <div class="rpe-header">
           <span class="section-label" style="margin:0;">⚡ Recovery RPE / Readiness</span>
@@ -293,54 +304,57 @@
         <div class="rpe-rating-label" id="rpe-label-thu"></div>
       </div>
 
-      <!-- Client Notes -->
       <div class="notes-box">
         <div class="section-label">📝 Rest Day Activity & Notes</div>
         <textarea class="notes-input" id="notes-thu" placeholder="How are energy levels / soreness ahead of Friday lifting?..." oninput="saveNote('thu', this.value)" onblur="saveNote('thu', this.value)"></textarea>
       </div>
 
-      <!-- Coach's Notes -->
       <div class="notes-box">
         <div class="section-label" style="color: var(--primary);">🎯 Coach's Recovery Directives</div>
         <textarea class="coach-notes-input" id="coach-notes-thu" placeholder="Pre-workout nutrition/sleep reminders..." oninput="saveCoachNote('thu', this.value)" onblur="saveCoachNote('thu', this.value)"></textarea>
       </div>
 
-      <button type="button" class="single-share-btn" onclick="shareSingleWorkout('thu')">
-        💬 Share Thursday Rest Day with Coach
+      <button type="button" class="single-share-btn" id="share-btn-thu" onclick="shareSingleWorkout('thu')">
+        💬 Share Thursday Activity with Coach
       </button>
     </div>
 
-    <!-- Friday: Overview card linking to tab -->
-    <div class="day-card">
+    <!-- Friday: Overview card -->
+    <div class="day-card" id="card-fri">
       <div class="day-row">
         <div class="day-info">
-          <span class="day-tag tag-str">FRI</span>
+          <span class="day-tag tag-str" id="tag-fri">FRI</span>
           <div>
-            <div style="font-weight: 600; font-size: 0.9rem;" id="fri-title">Friday Strength (Workout A)</div>
-            <div style="font-size: 0.75rem; color: var(--primary);" id="fri-sub">Solo Tracked Session</div>
+            <div class="day-title-wrap">
+              <span class="day-title-text" id="title-fri">Friday Strength (Workout A)</span>
+              <button type="button" class="edit-day-btn" title="Edit Activity" onclick="openEditActivityModal('fri')">✏️</button>
+            </div>
+            <div class="day-sub-text" id="sub-fri">Solo Tracked Session</div>
           </div>
         </div>
         <button class="check-btn" id="btn-fri" onclick="toggleSession('fri')">✓</button>
       </div>
       <button type="button" class="single-share-btn" style="margin-top: 10px;" onclick="switchTab('workout')">
-        🏋️ Go to Friday Strength Tracker & Notes
+        🏋️ Open Friday Strength Tracker & Notes
       </button>
     </div>
 
-    <!-- Saturday: Hyrox -->
-    <div class="day-card">
+    <!-- Saturday -->
+    <div class="day-card" id="card-sat">
       <div class="day-row">
         <div class="day-info">
-          <span class="day-tag tag-hyrox">SAT</span>
+          <span class="day-tag tag-hyrox" id="tag-sat">SAT</span>
           <div>
-            <div style="font-weight: 600; font-size: 0.9rem;">Hyrox Endurance</div>
-            <div style="font-size: 0.75rem; color: var(--text-muted);">Weekend functional workout</div>
+            <div class="day-title-wrap">
+              <span class="day-title-text" id="title-sat">Hyrox Endurance</span>
+              <button type="button" class="edit-day-btn" title="Edit Activity" onclick="openEditActivityModal('sat')">✏️</button>
+            </div>
+            <div class="day-sub-text" id="sub-sat">Weekend functional workout</div>
           </div>
         </div>
         <button class="check-btn" id="btn-sat" onclick="toggleSession('sat')">✓</button>
       </div>
 
-      <!-- RPE Scale -->
       <div class="rpe-container">
         <div class="rpe-header">
           <span class="section-label" style="margin:0;">⚡ Session RPE / Effort</span>
@@ -350,37 +364,37 @@
         <div class="rpe-rating-label" id="rpe-label-sat"></div>
       </div>
 
-      <!-- Client Notes -->
       <div class="notes-box">
         <div class="section-label">📝 Client Questions & Notes</div>
         <textarea class="notes-input" id="notes-sat" placeholder="Saturday Hyrox notes or volume..." oninput="saveNote('sat', this.value)" onblur="saveNote('sat', this.value)"></textarea>
       </div>
 
-      <!-- Coach's Notes -->
       <div class="notes-box">
         <div class="section-label" style="color: var(--primary);">🎯 Coach's Notes & Directives</div>
         <textarea class="coach-notes-input" id="coach-notes-sat" placeholder="Coach's weekend cues..." oninput="saveCoachNote('sat', this.value)" onblur="saveCoachNote('sat', this.value)"></textarea>
       </div>
 
-      <button type="button" class="single-share-btn" onclick="shareSingleWorkout('sat')">
+      <button type="button" class="single-share-btn" id="share-btn-sat" onclick="shareSingleWorkout('sat')">
         💬 Share Saturday Hyrox with Coach
       </button>
     </div>
 
-    <!-- Sunday: Total Recovery -->
-    <div class="day-card">
+    <!-- Sunday -->
+    <div class="day-card" id="card-sun">
       <div class="day-row">
         <div class="day-info">
-          <span class="day-tag tag-rest">SUN</span>
+          <span class="day-tag tag-rest" id="tag-sun">SUN</span>
           <div>
-            <div style="font-weight: 600; font-size: 0.9rem;">Full Rest</div>
-            <div style="font-size: 0.75rem; color: var(--text-muted);">Total recovery</div>
+            <div class="day-title-wrap">
+              <span class="day-title-text" id="title-sun">Full Rest</span>
+              <button type="button" class="edit-day-btn" title="Edit Activity" onclick="openEditActivityModal('sun')">✏️</button>
+            </div>
+            <div class="day-sub-text" id="sub-sun">Total recovery</div>
           </div>
         </div>
         <button class="check-btn" id="btn-sun" onclick="toggleSession('sun')">✓</button>
       </div>
 
-      <!-- RPE Scale -->
       <div class="rpe-container">
         <div class="rpe-header">
           <span class="section-label" style="margin:0;">⚡ Weekend Fatigue / RPE</span>
@@ -390,20 +404,18 @@
         <div class="rpe-rating-label" id="rpe-label-sun"></div>
       </div>
 
-      <!-- Client Notes -->
       <div class="notes-box">
         <div class="section-label">📝 Sunday Recovery & Notes</div>
         <textarea class="notes-input" id="notes-sun" placeholder="Any fatigue, weekend walk, or check-in notes for coach?..." oninput="saveNote('sun', this.value)" onblur="saveNote('sun', this.value)"></textarea>
       </div>
 
-      <!-- Coach's Notes -->
       <div class="notes-box">
         <div class="section-label" style="color: var(--primary);">🎯 Coach's Recovery Directives</div>
         <textarea class="coach-notes-input" id="coach-notes-sun" placeholder="Weekend review notes..." oninput="saveCoachNote('sun', this.value)" onblur="saveCoachNote('sun', this.value)"></textarea>
       </div>
 
-      <button type="button" class="single-share-btn" onclick="shareSingleWorkout('sun')">
-        💬 Share Sunday Recovery with Coach
+      <button type="button" class="single-share-btn" id="share-btn-sun" onclick="shareSingleWorkout('sun')">
+        💬 Share Sunday Activity with Coach
       </button>
     </div>
   </div>
@@ -468,7 +480,7 @@
   </div>
 </div>
 
-<!-- ================= MODAL: ADD / EDIT EXERCISE ================= -->
+<!-- ================= MODAL 1: ADD / EDIT EXERCISE ================= -->
 <div class="modal-overlay" id="exercise-modal">
   <div class="modal-card">
     <div class="modal-title" id="modal-title-text">Add Exercise</div>
@@ -491,6 +503,29 @@
     <div class="modal-actions">
       <button type="button" class="btn-secondary" onclick="closeExerciseModal()">Cancel</button>
       <button type="button" class="btn-primary" onclick="saveExerciseFromModal()">Save Exercise</button>
+    </div>
+  </div>
+</div>
+
+<!-- ================= MODAL 2: EDIT SCHEDULE ACTIVITY ================= -->
+<div class="modal-overlay" id="activity-modal">
+  <div class="modal-card">
+    <div class="modal-title" id="activity-modal-title">Edit Day Activity</div>
+    
+    <div class="form-group">
+      <label>Activity Name</label>
+      <input type="text" class="form-control" id="modal-act-title" placeholder="e.g. Boxing Session, Strength, Rest">
+    </div>
+    
+    <div class="form-group">
+      <label>Subtitle / Description</label>
+      <input type="text" class="form-control" id="modal-act-sub" placeholder="e.g. 1-on-1 with PT tonight, Solo weights">
+    </div>
+
+    <div class="modal-actions">
+      <button type="button" class="btn-secondary" onclick="resetActivityToDefault()">Reset Default</button>
+      <button type="button" class="btn-secondary" onclick="closeActivityModal()">Cancel</button>
+      <button type="button" class="btn-primary" onclick="saveActivityFromModal()">Save Activity</button>
     </div>
   </div>
 </div>
@@ -546,6 +581,18 @@
   let timerRunning = false;
   let appState = {};
   let editingExerciseIndex = -1;
+  let editingDayKey = null;
+
+  // Default Schedule metadata
+  const defaultSchedule = {
+    mon: { title: "Boxing Session", sub: "1-on-1 with PT" },
+    tue: { title: "Mobility & Rest", sub: "Light walk & active recovery" },
+    wed: { title: "Hyrox Conditioning", sub: "Group engine session" },
+    thu: { title: "Full Rest", sub: "Fuel up for Friday weights" },
+    fri: { title: "Friday Strength", sub: "Solo Tracked Session" },
+    sat: { title: "Hyrox Endurance", sub: "Weekend functional workout" },
+    sun: { title: "Full Rest", sub: "Total recovery" }
+  };
 
   // Base workouts
   const defaultWorkouts = {
@@ -635,6 +682,54 @@
     renderWorkout();
   }
 
+  // Manage Schedule Activity Overrides
+  function getActivityData(day) {
+    const customTitle = getData("act_title_" + day);
+    const customSub = getData("act_sub_" + day);
+    const def = defaultSchedule[day] || { title: day.toUpperCase(), sub: "" };
+    return {
+      title: customTitle || def.title,
+      sub: customSub !== '' && customSub !== null && customSub !== undefined ? customSub : def.sub
+    };
+  }
+
+  function openEditActivityModal(day) {
+    editingDayKey = day;
+    const act = getActivityData(day);
+    const dayNames = { mon: "Monday", tue: "Tuesday", wed: "Wednesday", thu: "Thursday", fri: "Friday", sat: "Saturday", sun: "Sunday" };
+    document.getElementById('activity-modal-title').innerText = "Edit " + (dayNames[day] || day.toUpperCase()) + " Activity";
+    document.getElementById('modal-act-title').value = act.title;
+    document.getElementById('modal-act-sub').value = act.sub;
+    document.getElementById('activity-modal').style.display = "flex";
+  }
+
+  function closeActivityModal() {
+    document.getElementById('activity-modal').style.display = "none";
+  }
+
+  function saveActivityFromModal() {
+    if (!editingDayKey) return;
+    const newTitle = document.getElementById('modal-act-title').value.trim();
+    const newSub = document.getElementById('modal-act-sub').value.trim();
+    if (!newTitle) {
+      alert("Please enter an activity name");
+      return;
+    }
+    syncData("act_title_" + editingDayKey, newTitle);
+    syncData("act_sub_" + editingDayKey, newSub);
+    closeActivityModal();
+    updateUI();
+  }
+
+  function resetActivityToDefault() {
+    if (!editingDayKey) return;
+    const def = defaultSchedule[editingDayKey];
+    syncData("act_title_" + editingDayKey, def.title);
+    syncData("act_sub_" + editingDayKey, def.sub);
+    closeActivityModal();
+    updateUI();
+  }
+
   function switchTab(tab) {
     const tabSched = document.getElementById('tab-btn-schedule');
     const tabWork = document.getElementById('tab-btn-workout');
@@ -660,18 +755,6 @@
     document.querySelectorAll('.week-pill').forEach((p, idx) => {
       p.classList.toggle('active', idx + 1 === w);
     });
-
-    const isWorkoutA = (w % 2 !== 0);
-    const friTitle = document.getElementById('fri-title');
-    const friSub = document.getElementById('fri-sub');
-
-    if (w === 4) {
-      if (friTitle) friTitle.innerText = "Friday Strength (Workout B)";
-      if (friSub) friSub.innerText = "⭐ 1-on-1 In-Person Check-In with PT";
-    } else {
-      if (friTitle) friTitle.innerText = "Friday Strength (" + (isWorkoutA ? "Workout A" : "Workout B") + ")";
-      if (friSub) friSub.innerText = "Solo Tracked Session";
-    }
     updateUI();
   }
 
@@ -713,7 +796,7 @@
 
     let html = '';
     for (let i = 1; i <= 10; i++) {
-      html += '<button type="button" class="rpe-chip ' + (currentVal === i ? 'selected' : '') + '" onclick="toggleRpe(\'' + sessionKey + '\', ' + i + ')">' + i + '</button>';
+      html += '<button type="button" class="rpe-chip ' + (currentVal === i ? 'selected' : '') + '" onclick="toggleRpe(\\'' + sessionKey + '\\', ' + i + ')">' + i + '</button>';
     }
     container.innerHTML = html;
 
@@ -727,7 +810,6 @@
     }
   }
 
-  // Toggle RPE: If user taps the already selected chip, uncheck it!
   function toggleRpe(sessionKey, val) {
     const currentVal = parseInt(getData("rpe_" + currentWeek + "_" + sessionKey) || 0);
     if (currentVal === val) {
@@ -744,10 +826,36 @@
   }
 
   function updateUI() {
+    const isWorkoutA = (currentWeek % 2 !== 0);
+
+    // Update Day Titles & Subtitles
     ['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun'].forEach(day => {
       const isDone = getData("session_" + currentWeek + "_" + day) === '1';
       const btn = document.getElementById("btn-" + day);
       if (btn) btn.classList.toggle('done', isDone);
+
+      const titleEl = document.getElementById("title-" + day);
+      const subEl = document.getElementById("sub-" + day);
+      const shareBtn = document.getElementById("share-btn-" + day);
+
+      const act = getActivityData(day);
+
+      if (day === 'fri') {
+        if (currentWeek === 4) {
+          if (titleEl) titleEl.innerText = act.title + " (Workout B)";
+          if (subEl) subEl.innerText = "⭐ 1-on-1 In-Person Check-In with PT";
+        } else {
+          if (titleEl) titleEl.innerText = act.title + " (" + (isWorkoutA ? "Workout A" : "Workout B") + ")";
+          if (subEl) subEl.innerText = act.sub;
+        }
+      } else {
+        if (titleEl) titleEl.innerText = act.title;
+        if (subEl) subEl.innerText = act.sub;
+      }
+
+      if (shareBtn) {
+        shareBtn.innerText = "💬 Share " + act.title + " with Coach";
+      }
     });
 
     // Populate notes & coach notes for all sessions
@@ -878,8 +986,8 @@
             '<span class="ex-meta">' + ex.sets + ' × ' + ex.reps + '</span>' +
           '</div>' +
           '<div class="action-group">' +
-            (exIdx > 0 ? '<button type="button" title="Move Up" class="icon-btn" onclick="moveExercise(\'' + workoutKey + '\', ' + exIdx + ', -1)">▲</button>' : '') +
-            (exIdx < workout.exercises.length - 1 ? '<button type="button" title="Move Down" class="icon-btn" onclick="moveExercise(\'' + workoutKey + '\', ' + exIdx + ', 1)">▼</button>' : '') +
+            (exIdx > 0 ? '<button type="button" title="Move Up" class="icon-btn" onclick="moveExercise(\\'' + workoutKey + '\\', ' + exIdx + ', -1)">▲</button>' : '') +
+            (exIdx < workout.exercises.length - 1 ? '<button type="button" title="Move Down" class="icon-btn" onclick="moveExercise(\\'' + workoutKey + '\\', ' + exIdx + ', 1)">▼</button>' : '') +
             '<button type="button" title="Edit Exercise" class="icon-btn edit" onclick="openEditExerciseModal(' + exIdx + ')">✏️</button>' +
             '<button type="button" title="Remove Exercise" class="icon-btn delete" onclick="deleteExercise(' + exIdx + ')">✕</button>' +
           '</div>' +
@@ -896,9 +1004,9 @@
 
         html += '<div class="set-row">' +
           '<span class="set-num">Set ' + s + '</span>' +
-          '<input type="text" class="log-input" placeholder="kg" value="' + savedWeight + '" onchange="syncData(\'' + wtKey + '\', this.value)">' +
-          '<input type="text" class="log-input" placeholder="reps" value="' + savedRep + '" onchange="syncData(\'' + rpKey + '\', this.value)">' +
-          '<button class="set-check ' + (isDone ? 'done' : '') + '" onclick="toggleSet(\'' + doneKey + '\', this)">✓</button>' +
+          '<input type="text" class="log-input" placeholder="kg" value="' + savedWeight + '" onchange="syncData(\\'' + wtKey + '\\', this.value)">' +
+          '<input type="text" class="log-input" placeholder="reps" value="' + savedRep + '" onchange="syncData(\\'' + rpKey + '\\', this.value)">' +
+          '<button class="set-check ' + (isDone ? 'done' : '') + '" onclick="toggleSet(\\'' + doneKey + '\\', this)">✓</button>' +
           '</div>';
       }
       html += '</div>';
@@ -954,18 +1062,17 @@
 
   // ================= INDIVIDUAL WORKOUT SHARE (WHATSAPP) =================
   function shareSingleWorkout(sessionKey) {
-    let title = "";
     let isStrength = (sessionKey === 'strength' || sessionKey === 'fri');
+    let title = "";
 
-    if (sessionKey === 'mon') title = "🥊 Monday Boxing Session";
-    else if (sessionKey === 'tue') title = "🧘 Tuesday Mobility & Active Recovery";
-    else if (sessionKey === 'wed') title = "🏃 Wednesday Hyrox Conditioning";
-    else if (sessionKey === 'thu') title = "🛌 Thursday Rest & Recovery";
-    else if (sessionKey === 'sat') title = "🏃 Saturday Hyrox Endurance";
-    else if (sessionKey === 'sun') title = "🛌 Sunday Rest & Total Recovery";
-    else if (isStrength) {
+    if (isStrength) {
       const isWorkoutA = (currentWeek % 2 !== 0);
-      title = "🏋️ Friday Strength (" + (isWorkoutA ? "Workout A" : "Workout B") + ")";
+      const act = getActivityData('fri');
+      title = "🏋️ " + act.title + " (" + (isWorkoutA ? "Workout A" : "Workout B") + ")";
+    } else {
+      const act = getActivityData(sessionKey);
+      const icons = { mon: "🥊", tue: "🧘", wed: "🏃", thu: "🛌", sat: "🏃", sun: "🛌" };
+      title = (icons[sessionKey] || "⚡") + " " + act.title;
     }
 
     const clientNote = getData("note_" + currentWeek + "_" + sessionKey);
@@ -973,32 +1080,31 @@
     const rpeVal = getData("rpe_" + currentWeek + "_" + sessionKey);
     const rpeObj = rpeLevels.find(r => r.val === parseInt(rpeVal));
 
-    let msg = "*" + title + " - Week " + currentWeek + "*\n\n";
+    let msg = "*" + title + " - Week " + currentWeek + "*\\n\\n";
     
     if (!isStrength) {
       const isDone = getData("session_" + currentWeek + "_" + sessionKey) === '1';
-      msg += "Status: " + (isDone ? "✅ Completed / Checked" : "⬜ Logged") + "\n";
+      msg += "Status: " + (isDone ? "✅ Completed / Checked" : "⬜ Logged") + "\\n";
     }
 
     if (rpeVal && parseInt(rpeVal) > 0) {
-      msg += "⚡ RPE Effort / Strain: " + (rpeObj ? rpeObj.label : rpeVal + "/10") + "\n";
+      msg += "⚡ RPE Effort / Strain: " + (rpeObj ? rpeObj.label : rpeVal + "/10") + "\\n";
     }
 
     if (clientNote) {
-      msg += "\n📝 *Client Notes / Questions:*\n" + clientNote + "\n";
+      msg += "\\n📝 *Client Notes / Questions:*\\n" + clientNote + "\\n";
     }
 
     if (coachNote) {
-      msg += "\n🎯 *Coach Notes / Directives:*\n" + coachNote + "\n";
+      msg += "\\n🎯 *Coach Notes / Directives:*\\n" + coachNote + "\\n";
     }
 
-    // Append logged weights/reps for strength sessions
     if (isStrength) {
       const isWorkoutA = (currentWeek % 2 !== 0);
       const workoutKey = isWorkoutA ? 'A' : 'B';
       const workout = getWorkoutData(workoutKey);
       
-      msg += "\n📊 *Logged Exercises:*\n";
+      msg += "\\n📊 *Logged Exercises:*\\n";
       let loggedCount = 0;
       workout.exercises.forEach(ex => {
         const exSlug = ex.name.replace(/[^a-zA-Z0-9]/g, '_').toLowerCase();
@@ -1012,11 +1118,11 @@
         }
         if (setsLogged.length > 0) {
           loggedCount++;
-          msg += "• *" + ex.name + "*\n   " + setsLogged.join(", ") + "\n";
+          msg += "• *" + ex.name + "*\\n   " + setsLogged.join(", ") + "\\n";
         }
       });
       if (loggedCount === 0) {
-        msg += "_(No exercise weights logged yet)_\n";
+        msg += "_(No exercise weights logged yet)_\\n";
       }
     }
 
