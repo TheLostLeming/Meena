@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>Strength & Conditioning Portal</title>
 
-  <!-- Firebase Compat SDKs (No import statements required) -->
+  <!-- Firebase Compat SDKs -->
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
 
@@ -18,6 +18,7 @@
       --text-muted: #94a3b8;
       --primary: #38bdf8;
       --accent: #10b981;
+      --danger: #ef4444;
       --border: #334155;
       --boxing: #ec4899;
       --hyrox: #f97316;
@@ -25,9 +26,11 @@
     }
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
     body { background-color: var(--bg); color: var(--text); padding-bottom: 70px; }
-    header { background: #111827; padding: 18px 20px; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 50; }
-    h1 { font-size: 1.15rem; font-weight: 700; color: #fff; }
-    .badge { font-size: 0.75rem; background: rgba(56, 189, 248, 0.15); color: var(--primary); padding: 4px 10px; border-radius: 999px; font-weight: 600; }
+    header { background: #111827; padding: 16px 20px; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 50; }
+    h1 { font-size: 1.1rem; font-weight: 700; color: #fff; }
+    .status-badge { font-size: 0.72rem; padding: 4px 8px; border-radius: 999px; font-weight: 600; display: inline-flex; align-items: center; gap: 4px; }
+    .status-online { background: rgba(16, 185, 129, 0.15); color: var(--accent); }
+    .status-offline { background: rgba(239, 68, 68, 0.15); color: var(--danger); }
     .nav-tabs { display: flex; background: #111827; border-bottom: 1px solid var(--border); }
     .tab-btn { flex: 1; padding: 14px; text-align: center; color: var(--text-muted); background: none; border: none; font-size: 0.9rem; font-weight: 600; cursor: pointer; border-bottom: 2px solid transparent; }
     .tab-btn.active { color: var(--primary); border-bottom: 2px solid var(--primary); background: rgba(56, 189, 248, 0.05); }
@@ -61,7 +64,7 @@
     .exercise-box { background: rgba(15, 23, 42, 0.7); border-radius: 10px; padding: 14px; margin-bottom: 12px; border: 1px solid rgba(255,255,255,0.06); }
     .ex-header { display: flex; justify-content: space-between; margin-bottom: 10px; align-items: baseline; }
     .ex-name { font-weight: 700; font-size: 0.95rem; color: #fff; }
-    .ex-meta { font-size: 0.8rem; color: var(--primary); }
+    .ex-meta { font-size: 0.8rem; color: var(--primary); font-weight: 600; }
     .set-row { display: grid; grid-template-columns: 42px 1fr 1fr 36px; gap: 8px; align-items: center; margin-bottom: 6px; }
     .set-num { font-size: 0.75rem; color: var(--text-muted); font-weight: 600; }
     .log-input { background: var(--card-bg); border: 1px solid var(--border); color: #fff; border-radius: 6px; padding: 6px 8px; font-size: 0.85rem; text-align: center; }
@@ -78,7 +81,7 @@
     <h1>Strength & Performance</h1>
     <span style="font-size: 0.8rem; color: var(--text-muted);">Personal Training Portal</span>
   </div>
-  <span class="badge" id="current-cycle-tag">Week 1 (Base)</span>
+  <div id="sync-status" class="status-badge status-offline">● Offline</div>
 </header>
 
 <div class="nav-tabs">
@@ -92,7 +95,7 @@
     <div class="week-pill active" onclick="setWeek(1)">W1 (Base)</div>
     <div class="week-pill" onclick="setWeek(2)">W2 (+Load)</div>
     <div class="week-pill" onclick="setWeek(3)">W3 (Peak)</div>
-    <div class="week-pill" onclick="setWeek(4)">W4 (Check-In)</div>
+    <div class="week-pill" onclick="setWeek(4)">W4 (Deload)</div>
   </div>
 
   <div class="card">
@@ -236,10 +239,10 @@
 <script>
   const COACH_PHONE_NUMBER = "447725918315";
 
-  // Configuration with fallback database URLs for both Europe and US regions
   const firebaseConfig = {
     apiKey: "AIzaSyBvgcECGibtm3jy7y31-6AGDezPDdAHDL4",
     authDomain: "training-app-3070c.firebaseapp.com",
+    databaseURL: "https://training-app-3070c-default-rtdb.europe-west1.firebasedatabase.app",
     projectId: "training-app-3070c",
     storageBucket: "training-app-3070c.firebasestorage.app",
     messagingSenderId: "303942494753",
@@ -247,13 +250,30 @@
   };
 
   let db = null;
+  const statusEl = document.getElementById('sync-status');
+
+  function setOnlineStatus(online, text) {
+    if (!statusEl) return;
+    statusEl.className = "status-badge " + (online ? "status-online" : "status-offline");
+    statusEl.innerText = (online ? "🟢 " : "🔴 ") + text;
+  }
+
   try {
     if (typeof firebase !== 'undefined' && firebase.initializeApp) {
       firebase.initializeApp(firebaseConfig);
       db = firebase.database();
+      
+      db.ref(".info/connected").on("value", snap => {
+        if (snap.val() === true) {
+          setOnlineStatus(true, "Cloud Synced");
+        } else {
+          setOnlineStatus(false, "Connecting...");
+        }
+      });
     }
   } catch (e) {
-    console.warn("Firebase running in offline/local mode:", e);
+    console.warn("Firebase error:", e);
+    setOnlineStatus(false, "Offline");
   }
 
   let currentWeek = 1;
@@ -262,44 +282,42 @@
   let timerRunning = false;
   let appState = {};
 
+  // ================= WORKOUT DEFINITIONS (Clean 8 Reps & 15 Reps) =================
   const workouts = {
     A: {
       name: "Workout A: Squat & Upper Push",
       exercises: [
-        { name: "Barbell Back Squat", sets: 4, reps: "6-8 reps" },
-        { name: "Bench Press (Barbell/DB)", sets: 4, reps: "6-8 reps" },
-        { name: "Bent-Over Rows (Barbell/DB)", sets: 3, reps: "8-10 reps" },
-        { name: "GHD or Hamstring Curls", sets: 3, reps: "12-15 reps" },
-        { name: "Overhead DB Shoulder Press", sets: 3, reps: "10-12 reps" }
+        { name: "Barbell Back Squat", sets: 4, reps: "8 reps" },
+        { name: "Bench Press (Barbell/DB)", sets: 4, reps: "8 reps" },
+        { name: "Bent-Over Rows (Barbell/DB)", sets: 4, reps: "8 reps" },
+        { name: "GHD or Hamstring Curls", sets: 2, reps: "15 reps" },
+        { name: "Overhead DB Shoulder Press", sets: 4, reps: "8 reps" }
       ]
     },
     B: {
       name: "Workout B: Hinge & Upper Pull",
       exercises: [
-        { name: "Deadlift (Trap Bar or Barbell)", sets: 4, reps: "5-6 reps" },
-        { name: "Front Squats (or Goblet Squat)", sets: 3, reps: "6-8 reps" },
-        { name: "Ring Rows (Inverted Rows)", sets: 3, reps: "8-10 reps" },
-        { name: "Walking Lunges", sets: 2, reps: "12-15 / leg" },
-        { name: "Incline DB Press", sets: 3, reps: "12-15 reps" }
+        { name: "Deadlift (Trap Bar or Barbell)", sets: 4, reps: "8 reps" },
+        { name: "Front Squats (or Goblet Squat)", sets: 4, reps: "8 reps" },
+        { name: "Ring Rows (Inverted Rows)", sets: 4, reps: "8 reps" },
+        { name: "Walking Lunges", sets: 2, reps: "15 reps / leg" },
+        { name: "Incline DB Press", sets: 2, reps: "15 reps" }
       ]
     }
   };
+  // ==============================================================================
 
-  // Safe Realtime listener
   if (db) {
-    try {
-      db.ref("client_training_data").on("value", snapshot => {
-        const data = snapshot.val();
-        if (data) {
-          appState = data;
-          updateUI();
-        }
-      }, err => {
-        console.warn("Database sync notice:", err.message);
-      });
-    } catch (err) {
-      console.warn("Database listener disabled:", err);
-    }
+    db.ref("client_training_data").on("value", snapshot => {
+      const data = snapshot.val();
+      if (data) {
+        appState = data;
+        updateUI();
+      }
+    }, err => {
+      console.warn("Database sync error:", err);
+      setOnlineStatus(false, "URL Mismatch");
+    });
   }
 
   function syncData(key, value) {
@@ -308,9 +326,7 @@
       localStorage.setItem(key, typeof value === 'object' ? JSON.stringify(value) : value);
     } catch (e) {}
     if (db) {
-      try {
-        db.ref("client_training_data/" + key).set(value);
-      } catch (e) {}
+      db.ref("client_training_data/" + key).set(value);
     }
   }
 
@@ -352,16 +368,13 @@
     const isWorkoutA = (w % 2 !== 0);
     const friTitle = document.getElementById('fri-title');
     const friSub = document.getElementById('fri-sub');
-    const cycleTag = document.getElementById('current-cycle-tag');
 
     if (w === 4) {
       if (friTitle) friTitle.innerText = "Friday Strength (Workout B)";
       if (friSub) friSub.innerText = "⭐ 1-on-1 In-Person Check-In with PT";
-      if (cycleTag) cycleTag.innerText = "Week 4 (Deload / PT)";
     } else {
       if (friTitle) friTitle.innerText = "Friday Strength (" + (isWorkoutA ? "Workout A" : "Workout B") + ")";
       if (friSub) friSub.innerText = "Solo Tracked Session";
-      if (cycleTag) cycleTag.innerText = "Week " + w + " (" + (w === 1 ? "Base" : w === 2 ? "+Load" : "Peak") + ")";
     }
     updateUI();
   }
@@ -413,7 +426,7 @@
     let html = '<div class="card-title"><div>' +
       '<span>' + workout.name + '</span>' +
       '<span style="font-size:0.75rem; color:var(--text-muted); display:block; font-weight:normal; margin-top:4px;">' +
-      'Week ' + currentWeek + ': Clean tempo & strict rest' +
+      'Week ' + currentWeek + ': Focus on solid form & strict rest' +
       '</span></div></div>';
 
     workout.exercises.forEach((ex, exIdx) => {
@@ -524,7 +537,6 @@
     window.open("https://wa.me/" + COACH_PHONE_NUMBER + "?text=" + encodeURIComponent(msg), "_blank");
   }
 
-  // Load Initial Week
   setWeek(1);
 </script>
 </body>
