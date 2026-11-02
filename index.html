@@ -264,14 +264,14 @@
     statusEl.innerText = (online ? "🟢 " : "🔴 ") + text;
   }
 
-  // Safe Regional Initialization
+  // Proper Firebase initialization
   try {
     if (typeof firebase !== 'undefined' && firebase.initializeApp) {
       if (!firebase.apps.length) {
         firebase.initializeApp(firebaseConfig);
       }
-      // Explicitly specify the Belgium database instance URL
-      db = firebase.database(firebaseConfig.databaseURL);
+      // Call firebase.database() without arguments to read databaseURL directly from config
+      db = firebase.database();
       
       db.ref(".info/connected").on("value", snap => {
         if (snap.val() === true) {
@@ -285,7 +285,7 @@
     }
   } catch (e) {
     console.warn("Firebase startup error:", e);
-    setOnlineStatus(false, e.code || "Offline");
+    setOnlineStatus(false, "Init Error");
   }
 
   let currentWeek = 1;
