@@ -1,1362 +1,562 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>Strength & Conditioning Portal</title>
-
-  <!-- Firebase Compat SDKs -->
-  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
-
-  <style>
-    :root {
-      --bg: #090d16;
-      --card-bg: #131c2e;
-      --card-sub: #1e293b;
-      --card-inner: #0f172a;
-      --text: #f8fafc;
-      --text-muted: #94a3b8;
-      --primary: #38bdf8;
-      --accent: #10b981;
-      --danger: #ef4444;
-      --warning: #f59e0b;
-      --border: #223049;
-      --boxing: #ec4899;
-      --hyrox: #f97316;
-      --whatsapp: #25d366;
-    }
-    * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
-    html, body { width: 100%; overflow-x: hidden; }
-    body { background-color: var(--bg); color: var(--text); padding-bottom: 70px; }
-    
-    header { 
-      background: #0d131f; 
-      padding: 14px 18px; 
-      border-bottom: 1px solid var(--border); 
-      display: flex; 
-      justify-content: space-between; 
-      align-items: center; 
-      position: sticky; 
-      top: 0; 
-      z-index: 50; 
-    }
-    h1 { font-size: 1.05rem; font-weight: 700; color: #fff; }
-    .status-badge { font-size: 0.72rem; padding: 4px 8px; border-radius: 999px; font-weight: 600; display: inline-flex; align-items: center; gap: 4px; }
-    .status-online { background: rgba(16, 185, 129, 0.15); color: var(--accent); }
-    .status-offline { background: rgba(239, 68, 68, 0.15); color: var(--danger); }
-    
-    .nav-tabs { display: flex; background: #0d131f; border-bottom: 1px solid var(--border); }
-    .tab-btn { flex: 1; padding: 12px; text-align: center; color: var(--text-muted); background: none; border: none; font-size: 0.88rem; font-weight: 600; cursor: pointer; border-bottom: 2px solid transparent; }
-    .tab-btn.active { color: var(--primary); border-bottom: 2px solid var(--primary); background: rgba(56, 189, 248, 0.05); }
-    
-    .content-area { padding: 14px; max-width: 650px; margin: 0 auto; width: 100%; }
-    .card { background: var(--card-bg); border-radius: 12px; padding: 16px; margin-bottom: 16px; border: 1px solid var(--border); width: 100%; }
-    .card-title { font-size: 1rem; font-weight: 700; margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center; }
-    
-    .week-selector { display: flex; gap: 6px; margin-bottom: 14px; }
-    .week-pill { flex: 1; padding: 8px 4px; text-align: center; border-radius: 8px; font-size: 0.78rem; font-weight: 600; background: var(--card-bg); border: 1px solid var(--border); color: var(--text-muted); cursor: pointer; }
-    .week-pill.active { background: var(--primary); color: #000; border-color: var(--primary); font-weight: 700; }
-    
-    /* Day Card Styling & Visual Differentiation */
-    .day-card { 
-      background: var(--card-inner); 
-      border: 1px solid var(--border); 
-      border-left: 4px solid var(--border); 
-      border-radius: 10px; 
-      padding: 12px 14px; 
-      margin-bottom: 12px; 
-      transition: all 0.2s ease;
-    }
-    .day-card.theme-boxing { border-left-color: var(--boxing); }
-    .day-card.theme-hyrox { border-left-color: var(--hyrox); }
-    .day-card.theme-strength { border-left-color: var(--primary); }
-    .day-card.theme-rest { border-left-color: #64748b; }
-    
-    .day-card.is-today {
-      box-shadow: 0 0 0 1px var(--primary);
-    }
-
-    .day-row { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
-    .day-info { display: flex; align-items: center; gap: 10px; min-width: 0; flex: 1; }
-    
-    /* Left Date Badge */
-    .day-tag { 
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      min-width: 52px; 
-      padding: 6px 2px; 
-      border-radius: 8px; 
-      flex-shrink: 0; 
-      line-height: 1.15;
-    }
-    .day-tag .day-name { font-size: 0.72rem; font-weight: 800; text-transform: uppercase; }
-    .day-tag .day-date { font-size: 0.65rem; font-weight: 600; opacity: 0.85; margin-top: 2px; }
-
-    .tag-box { background: rgba(236, 72, 153, 0.16); color: var(--boxing); }
-    .tag-hyrox { background: rgba(249, 115, 22, 0.16); color: var(--hyrox); }
-    .tag-str { background: rgba(56, 189, 248, 0.16); color: var(--primary); }
-    .tag-rest { background: rgba(148, 163, 184, 0.16); color: var(--text-muted); }
-    
-    .day-text-col { min-width: 0; flex: 1; }
-    .day-title-wrap { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
-    .day-title-text { font-weight: 700; font-size: 0.92rem; color: #fff; word-break: break-word; }
-    .day-sub-text { font-size: 0.74rem; color: var(--text-muted); margin-top: 2px; }
-    .today-pill { font-size: 0.62rem; padding: 1px 5px; border-radius: 4px; background: var(--primary); color: #000; font-weight: 800; text-transform: uppercase; }
-
-    .edit-day-btn { background: none; border: none; color: var(--text-muted); cursor: pointer; font-size: 0.72rem; padding: 2px 4px; border-radius: 4px; line-height: 1; }
-    .edit-day-btn:hover { color: var(--primary); background: rgba(56, 189, 248, 0.1); }
-
-    .check-btn { 
-      width: 34px; 
-      height: 34px; 
-      border-radius: 50%; 
-      border: 2px solid var(--border); 
-      background: transparent; 
-      cursor: pointer; 
-      display: flex; 
-      align-items: center; 
-      justify-content: center; 
-      color: transparent; 
-      font-weight: bold; 
-      transition: all 0.2s; 
-      flex-shrink: 0; 
-    }
-    .check-btn.done { background: var(--accent); border-color: var(--accent); color: #000; }
-
-    /* De-clutter Collapsible Drawer Toggle */
-    .drawer-toggle-btn {
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      margin-top: 8px;
-      padding: 5px 8px;
-      font-size: 0.72rem;
-      font-weight: 600;
-      color: var(--text-muted);
-      background: rgba(255, 255, 255, 0.04);
-      border: 1px solid rgba(255, 255, 255, 0.08);
-      border-radius: 6px;
-      cursor: pointer;
-      transition: all 0.15s;
-    }
-    .drawer-toggle-btn:hover { color: #fff; background: rgba(255, 255, 255, 0.08); }
-    .drawer-indicator {
-      display: inline-block;
-      width: 6px;
-      height: 6px;
-      border-radius: 50%;
-      background: var(--warning);
-    }
-    .day-drawer {
-      display: none;
-      margin-top: 10px;
-      padding-top: 10px;
-      border-top: 1px dashed rgba(255, 255, 255, 0.08);
-      animation: fadeIn 0.2s ease-in-out;
-    }
-    .day-drawer.open { display: block; }
-    
-    @keyframes fadeIn {
-      from { opacity: 0; transform: translateY(-4px); }
-      to { opacity: 1; transform: translateY(0); }
-    }
-
-    /* Notes & Input Sections */
-    .section-label { font-size: 0.72rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; color: var(--text-muted); margin-bottom: 4px; display: flex; align-items: center; gap: 5px; }
-    .notes-box { margin-top: 8px; }
-    .notes-input { width: 100%; background: #060911; border: 1px solid var(--border); color: #fff; border-radius: 6px; padding: 7px 9px; font-size: 0.82rem; resize: vertical; min-height: 44px; box-sizing: border-box; }
-    .coach-notes-input { width: 100%; background: rgba(56, 189, 248, 0.04); border: 1px solid rgba(56, 189, 248, 0.25); color: #e2e8f0; border-radius: 6px; padding: 7px 9px; font-size: 0.82rem; resize: vertical; min-height: 42px; box-sizing: border-box; }
-    
-    /* RPE Scale */
-    .rpe-container { margin-bottom: 8px; }
-    .rpe-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px; }
-    .rpe-clear-btn { background: none; border: none; color: var(--text-muted); font-size: 0.68rem; font-weight: 600; cursor: pointer; padding: 2px 4px; text-decoration: underline; }
-    .rpe-clear-btn:hover { color: var(--danger); }
-    .rpe-chips { display: flex; gap: 3px; overflow-x: auto; padding-bottom: 2px; }
-    .rpe-chip { flex: 1; min-width: 26px; text-align: center; padding: 5px 1px; border-radius: 5px; font-size: 0.72rem; font-weight: 700; background: #060911; border: 1px solid var(--border); color: var(--text-muted); cursor: pointer; transition: all 0.15s; }
-    .rpe-chip.selected { background: var(--warning); color: #000; border-color: var(--warning); font-weight: 800; }
-    .rpe-rating-label { font-size: 0.72rem; color: var(--warning); margin-top: 3px; font-weight: 600; min-height: 16px; }
-
-    /* Single Share Button */
-    .single-share-btn { display: inline-flex; align-items: center; justify-content: center; gap: 6px; width: 100%; background: rgba(37, 211, 102, 0.12); border: 1px solid rgba(37, 211, 102, 0.35); color: var(--whatsapp); font-weight: 700; font-size: 0.8rem; padding: 8px; border-radius: 6px; cursor: pointer; margin-top: 10px; transition: background 0.2s; }
-    .single-share-btn:hover { background: rgba(37, 211, 102, 0.22); }
-    .whatsapp-btn { display: flex; align-items: center; justify-content: center; gap: 8px; width: 100%; background: var(--whatsapp); color: #000; font-weight: 700; font-size: 0.95rem; padding: 13px; border-radius: 8px; border: none; cursor: pointer; margin-top: 14px; transition: opacity 0.2s; }
-    .whatsapp-btn:hover { opacity: 0.92; }
-
-    /* Rest Timer */
-    .timer-bar { display: flex; align-items: center; justify-content: space-between; background: #000; padding: 12px 16px; border-radius: 10px; margin-bottom: 14px; border: 1px solid var(--border); }
-    .timer-display { font-size: 1.35rem; font-weight: 800; font-family: monospace; color: var(--primary); }
-    .timer-controls { display: flex; gap: 6px; }
-    .t-btn { background: var(--card-sub); border: none; color: #fff; padding: 6px 10px; border-radius: 6px; font-size: 0.75rem; font-weight: 600; cursor: pointer; }
-    .t-btn.start { background: var(--accent); color: #000; }
-    
-    /* Exercises Container (Friday Strength) */
-    .exercise-box { background: rgba(15, 23, 42, 0.7); border-radius: 10px; padding: 12px; margin-bottom: 12px; border: 1px solid rgba(255,255,255,0.06); width: 100%; }
-    .ex-header { display: flex; justify-content: space-between; margin-bottom: 10px; align-items: flex-start; gap: 8px; }
-    .ex-title-wrap { display: flex; flex-direction: column; align-items: flex-start; gap: 2px; min-width: 0; flex: 1; }
-    .ex-name { font-weight: 700; font-size: 0.90rem; color: #fff; word-break: break-word; line-height: 1.25; }
-    .ex-meta { font-size: 0.76rem; color: var(--primary); font-weight: 600; }
-    
-    .action-group { display: flex; gap: 4px; align-items: center; flex-shrink: 0; }
-    .icon-btn { background: var(--card-sub); border: 1px solid var(--border); color: var(--text-muted); width: 26px; height: 26px; border-radius: 6px; cursor: pointer; font-size: 0.72rem; display: inline-flex; align-items: center; justify-content: center; }
-    .icon-btn:hover { color: #fff; }
-    .icon-btn.delete:hover { background: var(--danger); color: #fff; border-color: var(--danger); }
-    .icon-btn.edit:hover { background: var(--primary); color: #000; border-color: var(--primary); }
-
-    .set-row { display: grid; grid-template-columns: 38px minmax(0, 1fr) minmax(0, 1fr) 32px; gap: 6px; align-items: center; margin-bottom: 6px; width: 100%; }
-    .set-num { font-size: 0.75rem; color: var(--text-muted); font-weight: 600; }
-    .log-input { width: 100%; min-width: 0; background: var(--card-bg); border: 1px solid var(--border); color: #fff; border-radius: 6px; padding: 6px 4px; font-size: 0.85rem; text-align: center; box-sizing: border-box; }
-    .set-check { width: 30px; height: 30px; border-radius: 6px; border: 1px solid var(--border); background: transparent; cursor: pointer; display: flex; align-items: center; justify-content: center; color: transparent; font-size: 0.75rem; font-weight: bold; flex-shrink: 0; }
-    .set-check.done { background: var(--accent); border-color: var(--accent); color: #000; }
-    
-    .add-ex-btn { width: 100%; padding: 10px; background: rgba(56, 189, 248, 0.1); border: 1px dashed var(--primary); color: var(--primary); border-radius: 8px; font-weight: 700; font-size: 0.85rem; cursor: pointer; margin-top: 4px; margin-bottom: 16px; }
-    .add-ex-btn:hover { background: rgba(56, 189, 248, 0.2); }
-
-    /* Modals */
-    .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.75); display: none; align-items: center; justify-content: center; z-index: 100; padding: 16px; }
-    .modal-card { background: var(--card-bg); border: 1px solid var(--border); border-radius: 12px; max-width: 420px; width: 100%; padding: 18px; }
-    .modal-title { font-size: 1.05rem; font-weight: 700; margin-bottom: 12px; }
-    .form-group { margin-bottom: 12px; }
-    .form-group label { display: block; font-size: 0.78rem; color: var(--text-muted); margin-bottom: 4px; font-weight: 600; }
-    .form-control { width: 100%; background: var(--bg); border: 1px solid var(--border); border-radius: 6px; padding: 8px 10px; color: #fff; font-size: 0.9rem; }
-    .modal-actions { display: flex; gap: 8px; justify-content: flex-end; margin-top: 16px; }
-    .btn-secondary { background: var(--card-sub); border: none; color: #fff; padding: 8px 14px; border-radius: 6px; font-size: 0.85rem; cursor: pointer; }
-    .btn-primary { background: var(--primary); border: none; color: #000; padding: 8px 14px; border-radius: 6px; font-size: 0.85rem; font-weight: 700; cursor: pointer; }
-
-    @media (max-width: 480px) {
-      .content-area { padding: 10px 8px; }
-      .card { padding: 12px 10px; border-radius: 10px; }
-      .day-card { padding: 10px 10px; }
-      .exercise-box { padding: 10px 8px; }
-      .timer-bar { padding: 10px 12px; }
-      .t-btn { padding: 5px 8px; font-size: 0.72rem; }
-    }
-  </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Strength & Conditioning Portal</title>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+<style>
+:root{--bg:#090d16;--card-bg:#131c2e;--card-sub:#1e293b;--card-inner:#0f172a;--text:#f8fafc;--muted:#94a3b8;--primary:#38bdf8;--accent:#10b981;--danger:#ef4444;--warning:#f59e0b;--border:#223049;--boxing:#ec4899;--hyrox:#f97316;--wa:#25d366}
+*{box-sizing:border-box;margin:0;padding:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif}
+html,body{width:100%;overflow-x:hidden}
+body{background:var(--bg);color:var(--text);padding-bottom:70px}
+header{background:#0d131f;padding:14px 18px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;position:sticky;top:0;z-index:50}
+h1{font-size:1.05rem;font-weight:700}
+.status-badge{font-size:.72rem;padding:4px 8px;border-radius:999px;font-weight:600}
+.status-online{background:rgba(16,185,129,.15);color:var(--accent)}
+.status-offline{background:rgba(239,68,68,.15);color:var(--danger)}
+.nav-tabs{display:flex;background:#0d131f;border-bottom:1px solid var(--border)}
+.tab-btn{flex:1;padding:12px 4px;text-align:center;color:var(--muted);background:none;border:none;font-size:.82rem;font-weight:600;cursor:pointer;border-bottom:2px solid transparent}
+.tab-btn.active{color:var(--primary);border-bottom-color:var(--primary);background:rgba(56,189,248,.05)}
+.content-area{padding:14px;max-width:650px;margin:0 auto;width:100%}
+.card{background:var(--card-bg);border-radius:12px;padding:16px;margin-bottom:16px;border:1px solid var(--border);width:100%}
+.card-title{font-size:1rem;font-weight:700;margin-bottom:12px;display:flex;justify-content:space-between;align-items:center}
+.cycle-bar{display:flex;gap:8px;margin-bottom:12px}
+.cycle-bar select{flex:1;min-width:0;background:var(--card-bg);color:#fff;border:1px solid var(--border);border-radius:8px;padding:8px;font-size:.82rem}
+.cycle-bar button{background:rgba(56,189,248,.12);color:var(--primary);border:1px solid var(--primary);border-radius:8px;padding:8px 10px;font-size:.78rem;font-weight:700;cursor:pointer}
+.banner{background:rgba(245,158,11,.12);border:1px solid rgba(245,158,11,.4);color:var(--warning);border-radius:8px;padding:8px 10px;font-size:.78rem;margin-bottom:12px;display:none}
+.week-selector{display:flex;gap:6px;margin-bottom:14px}
+.week-pill{flex:1;padding:8px 4px;text-align:center;border-radius:8px;font-size:.78rem;font-weight:600;background:var(--card-bg);border:1px solid var(--border);color:var(--muted);cursor:pointer}
+.week-pill.active{background:var(--primary);color:#000;border-color:var(--primary);font-weight:700}
+.day-card{background:var(--card-inner);border:1px solid var(--border);border-left:4px solid var(--border);border-radius:10px;padding:12px 14px;margin-bottom:12px}
+.theme-boxing{border-left-color:var(--boxing)}.theme-hyrox{border-left-color:var(--hyrox)}.theme-strength{border-left-color:var(--primary)}.theme-rest{border-left-color:#64748b}
+.day-card.is-today{box-shadow:0 0 0 1px var(--primary)}
+.day-row{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.day-info{display:flex;align-items:center;gap:10px;min-width:0;flex:1}
+.day-tag{display:flex;flex-direction:column;align-items:center;justify-content:center;min-width:52px;padding:6px 2px;border-radius:8px;flex-shrink:0;line-height:1.15}
+.day-name{font-size:.72rem;font-weight:800;text-transform:uppercase}
+.day-date{font-size:.65rem;font-weight:600;opacity:.85;margin-top:2px}
+.tag-boxing{background:rgba(236,72,153,.16);color:var(--boxing)}.tag-hyrox{background:rgba(249,115,22,.16);color:var(--hyrox)}.tag-strength{background:rgba(56,189,248,.16);color:var(--primary)}.tag-rest{background:rgba(148,163,184,.16);color:var(--muted)}
+.day-text-col{min-width:0;flex:1}
+.day-title-wrap{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+.day-title-text{font-weight:700;font-size:.92rem;word-break:break-word}
+.day-sub-text{font-size:.74rem;color:var(--muted);margin-top:2px}
+.today-pill{font-size:.62rem;padding:1px 5px;border-radius:4px;background:var(--primary);color:#000;font-weight:800;text-transform:uppercase}
+.edit-day-btn{background:none;border:none;color:var(--muted);cursor:pointer;font-size:.72rem;padding:2px 4px}
+.check-btn{width:34px;height:34px;border-radius:50%;border:2px solid var(--border);background:transparent;cursor:pointer;display:flex;align-items:center;justify-content:center;color:transparent;font-weight:bold;flex-shrink:0}
+.check-btn.done{background:var(--accent);border-color:var(--accent);color:#000}
+.drawer-toggle-btn{display:inline-flex;align-items:center;gap:6px;margin-top:8px;padding:5px 8px;font-size:.72rem;font-weight:600;color:var(--muted);background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:6px;cursor:pointer}
+.drawer-indicator{width:6px;height:6px;border-radius:50%;background:var(--warning);display:none}
+.day-drawer{display:none;margin-top:10px;padding-top:10px;border-top:1px dashed rgba(255,255,255,.08)}
+.day-drawer.open{display:block}
+.section-label{font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);margin-bottom:4px}
+.notes-box{margin-top:8px}
+.notes-input,.coach-notes-input{width:100%;background:#060911;border:1px solid var(--border);color:#fff;border-radius:6px;padding:7px 9px;font-size:.82rem;resize:vertical;min-height:44px}
+.coach-notes-input{background:rgba(56,189,248,.04);border-color:rgba(56,189,248,.25)}
+.rpe-container{margin-bottom:8px}
+.rpe-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:4px}
+.rpe-clear-btn{background:none;border:none;color:var(--muted);font-size:.68rem;font-weight:600;cursor:pointer;text-decoration:underline}
+.rpe-chips{display:flex;gap:3px}
+.rpe-chip{flex:1;min-width:26px;text-align:center;padding:5px 1px;border-radius:5px;font-size:.72rem;font-weight:700;background:#060911;border:1px solid var(--border);color:var(--muted);cursor:pointer}
+.rpe-chip.selected{background:var(--warning);color:#000;border-color:var(--warning)}
+.rpe-rating-label{font-size:.72rem;color:var(--warning);margin-top:3px;font-weight:600;min-height:16px}
+.single-share-btn,.whatsapp-btn{display:flex;align-items:center;justify-content:center;gap:6px;width:100%;background:rgba(37,211,102,.12);border:1px solid rgba(37,211,102,.35);color:var(--wa);font-weight:700;font-size:.8rem;padding:8px;border-radius:6px;cursor:pointer;margin-top:10px}
+.whatsapp-btn{background:var(--wa);color:#000;font-size:.95rem;padding:13px;border:none;border-radius:8px}
+.timer-bar{display:flex;align-items:center;justify-content:space-between;background:#000;padding:12px 16px;border-radius:10px;margin-bottom:14px;border:1px solid var(--border)}
+.timer-display{font-size:1.35rem;font-weight:800;font-family:monospace;color:var(--primary)}
+.timer-controls{display:flex;gap:6px}
+.t-btn{background:var(--card-sub);border:none;color:#fff;padding:6px 10px;border-radius:6px;font-size:.75rem;font-weight:600;cursor:pointer}
+.t-btn.start{background:var(--accent);color:#000}
+.exercise-box{background:rgba(15,23,42,.7);border-radius:10px;padding:12px;margin-bottom:12px;border:1px solid rgba(255,255,255,.06)}
+.ex-header{display:flex;justify-content:space-between;margin-bottom:10px;align-items:flex-start;gap:8px}
+.ex-title-wrap{display:flex;flex-direction:column;gap:2px;min-width:0;flex:1}
+.ex-name{font-weight:700;font-size:.9rem;word-break:break-word}
+.ex-meta{font-size:.76rem;color:var(--primary);font-weight:600}
+.ex-last{font-size:.72rem;color:var(--muted)}
+.action-group{display:flex;gap:4px;flex-shrink:0}
+.icon-btn{background:var(--card-sub);border:1px solid var(--border);color:var(--muted);width:26px;height:26px;border-radius:6px;cursor:pointer;font-size:.72rem}
+.set-row{display:grid;grid-template-columns:38px minmax(0,1fr) minmax(0,1fr) 32px;gap:6px;align-items:center;margin-bottom:6px}
+.set-num{font-size:.75rem;color:var(--muted);font-weight:600}
+.log-input{width:100%;min-width:0;background:var(--card-bg);border:1px solid var(--border);color:#fff;border-radius:6px;padding:6px 4px;font-size:.85rem;text-align:center}
+.set-check{width:30px;height:30px;border-radius:6px;border:1px solid var(--border);background:transparent;cursor:pointer;color:transparent;font-weight:bold}
+.set-check.done{background:var(--accent);border-color:var(--accent);color:#000}
+.add-ex-btn{width:100%;padding:10px;background:rgba(56,189,248,.1);border:1px dashed var(--primary);color:var(--primary);border-radius:8px;font-weight:700;font-size:.85rem;cursor:pointer;margin-bottom:16px}
+.hist-cycle{font-size:.8rem;font-weight:700;color:var(--primary);margin:6px 0 8px}
+.hist-row{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:10px;background:var(--card-inner);border:1px solid var(--border);border-radius:8px;margin-bottom:6px;cursor:pointer;font-size:.8rem}
+.hist-row small{color:var(--muted);display:block;margin-top:2px}
+.hist-stat{font-weight:700;color:var(--accent);white-space:nowrap}
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.75);display:none;align-items:center;justify-content:center;z-index:100;padding:16px}
+.modal-card{background:var(--card-bg);border:1px solid var(--border);border-radius:12px;max-width:420px;width:100%;padding:18px}
+.modal-title{font-size:1.05rem;font-weight:700;margin-bottom:12px}
+.form-group{margin-bottom:12px}
+.form-group label{display:block;font-size:.78rem;color:var(--muted);margin-bottom:4px;font-weight:600}
+.form-control{width:100%;background:var(--bg);border:1px solid var(--border);border-radius:6px;padding:8px 10px;color:#fff;font-size:.9rem}
+.modal-actions{display:flex;gap:8px;justify-content:flex-end;margin-top:16px}
+.btn-secondary{background:var(--card-sub);border:none;color:#fff;padding:8px 14px;border-radius:6px;font-size:.85rem;cursor:pointer}
+.btn-primary{background:var(--primary);border:none;color:#000;padding:8px 14px;border-radius:6px;font-size:.85rem;font-weight:700;cursor:pointer}
+@media(max-width:480px){.content-area{padding:10px 8px}.card{padding:12px 10px}.day-card{padding:10px}.exercise-box{padding:10px 8px}}
+</style>
 </head>
 <body>
-
 <header>
-  <div>
-    <h1>Strength & Performance</h1>
-    <span style="font-size: 0.78rem; color: var(--text-muted);">Personal Training Portal</span>
-  </div>
+  <div><h1>Strength & Performance</h1><span style="font-size:.78rem;color:var(--muted)">Personal Training Portal</span></div>
   <div id="sync-status" class="status-badge status-offline">● Connecting...</div>
 </header>
-
 <div class="nav-tabs">
   <button class="tab-btn active" id="tab-btn-schedule" onclick="switchTab('schedule')">📅 Week Plan</button>
   <button class="tab-btn" id="tab-btn-workout" onclick="switchTab('workout')">🏋️ Friday Strength</button>
+  <button class="tab-btn" id="tab-btn-history" onclick="switchTab('history')">📈 History</button>
 </div>
 
-<!-- ================= TAB 1: WEEK PLAN ================= -->
 <div class="content-area" id="schedule-tab">
+  <div class="cycle-bar"><select id="cycle-select" onchange="selectCycle(this.value)"></select><button type="button" onclick="newCycle()">＋ New cycle</button></div>
+  <div class="banner" id="past-banner"></div>
   <div class="week-selector">
-    <div class="week-pill active" onclick="setWeek(1)">W1</div>
-    <div class="week-pill" onclick="setWeek(2)">W2</div>
-    <div class="week-pill" onclick="setWeek(3)">W3</div>
-    <div class="week-pill" onclick="setWeek(4)">W4</div>
+    <div class="week-pill" onclick="setWeek(1)">W1</div><div class="week-pill" onclick="setWeek(2)">W2</div>
+    <div class="week-pill" onclick="setWeek(3)">W3</div><div class="week-pill" onclick="setWeek(4)">W4</div>
   </div>
-
   <div class="card">
     <div class="card-title">
-      <div style="display:flex; flex-direction:column;">
-        <span>7-Day Training Rhythm</span>
-        <span style="font-size:0.75rem; color:var(--text-muted); font-weight:normal;" id="week-date-range">...</span>
-      </div>
-      <span style="font-size: 0.8rem; color: var(--accent); font-weight:700;" id="completion-stat">0/4 Done</span>
+      <div style="display:flex;flex-direction:column"><span>7-Day Training Rhythm</span><span style="font-size:.75rem;color:var(--muted);font-weight:normal" id="week-date-range">...</span></div>
+      <span style="font-size:.8rem;color:var(--accent);font-weight:700" id="completion-stat">0/4 Core Done</span>
     </div>
-    
-    <!-- Monday -->
-    <div class="day-card theme-boxing" id="card-mon">
-      <div class="day-row">
-        <div class="day-info">
-          <div class="day-tag tag-box">
-            <span class="day-name">MON</span>
-            <span class="day-date" id="date-mon">--</span>
-          </div>
-          <div class="day-text-col">
-            <div class="day-title-wrap">
-              <span class="day-title-text" id="title-mon">Boxing Session</span>
-              <span class="today-pill" id="today-mon" style="display:none;">Today</span>
-              <button type="button" class="edit-day-btn" title="Edit Activity" onclick="openEditActivityModal('mon')">✏️</button>
-            </div>
-            <div class="day-sub-text" id="sub-mon">1-on-1 with PT</div>
-          </div>
-        </div>
-        <button class="check-btn" id="btn-mon" onclick="toggleSession('mon')">✓</button>
-      </div>
-
-      <button type="button" class="drawer-toggle-btn" onclick="toggleDrawer('mon')">
-        <span id="drawer-icon-mon">▸</span> Log & Notes <span class="drawer-indicator" id="dot-mon" style="display:none;"></span>
-      </button>
-
-      <div class="day-drawer" id="drawer-mon">
-        <div class="rpe-container">
-          <div class="rpe-header">
-            <span class="section-label" style="margin:0;">⚡ Session RPE / Effort</span>
-            <button type="button" class="rpe-clear-btn" onclick="clearRpe('mon')">Clear</button>
-          </div>
-          <div class="rpe-chips" id="rpe-chips-mon"></div>
-          <div class="rpe-rating-label" id="rpe-label-mon"></div>
-        </div>
-
-        <div class="notes-box">
-          <div class="section-label">📝 Client Questions & Notes</div>
-          <textarea class="notes-input" id="notes-mon" placeholder="How was the session? Questions or feedback..." oninput="saveNote('mon', this.value)" onblur="saveNote('mon', this.value)"></textarea>
-        </div>
-
-        <div class="notes-box">
-          <div class="section-label" style="color: var(--primary);">🎯 Coach's Notes & Directives</div>
-          <textarea class="coach-notes-input" id="coach-notes-mon" placeholder="Coach's cues, focus areas, or feedback..." oninput="saveCoachNote('mon', this.value)" onblur="saveCoachNote('mon', this.value)"></textarea>
-        </div>
-
-        <button type="button" class="single-share-btn" id="share-btn-mon" onclick="shareSingleWorkout('mon')">
-          💬 Share Monday Boxing with Coach
-        </button>
-      </div>
-    </div>
-
-    <!-- Tuesday -->
-    <div class="day-card theme-rest" id="card-tue">
-      <div class="day-row">
-        <div class="day-info">
-          <div class="day-tag tag-rest">
-            <span class="day-name">TUE</span>
-            <span class="day-date" id="date-tue">--</span>
-          </div>
-          <div class="day-text-col">
-            <div class="day-title-wrap">
-              <span class="day-title-text" id="title-tue">Mobility & Rest</span>
-              <span class="today-pill" id="today-tue" style="display:none;">Today</span>
-              <button type="button" class="edit-day-btn" title="Edit Activity" onclick="openEditActivityModal('tue')">✏️</button>
-            </div>
-            <div class="day-sub-text" id="sub-tue">Light walk & active recovery</div>
-          </div>
-        </div>
-        <button class="check-btn" id="btn-tue" onclick="toggleSession('tue')">✓</button>
-      </div>
-
-      <button type="button" class="drawer-toggle-btn" onclick="toggleDrawer('tue')">
-        <span id="drawer-icon-tue">▸</span> Log & Notes <span class="drawer-indicator" id="dot-tue" style="display:none;"></span>
-      </button>
-
-      <div class="day-drawer" id="drawer-tue">
-        <div class="rpe-container">
-          <div class="rpe-header">
-            <span class="section-label" style="margin:0;">⚡ Recovery RPE / Strain</span>
-            <button type="button" class="rpe-clear-btn" onclick="clearRpe('tue')">Clear</button>
-          </div>
-          <div class="rpe-chips" id="rpe-chips-tue"></div>
-          <div class="rpe-rating-label" id="rpe-label-tue"></div>
-        </div>
-
-        <div class="notes-box">
-          <div class="section-label">📝 Rest Day Activity & Notes</div>
-          <textarea class="notes-input" id="notes-tue" placeholder="Any extra walks, mobility, or notes on recovery?..." oninput="saveNote('tue', this.value)" onblur="saveNote('tue', this.value)"></textarea>
-        </div>
-
-        <div class="notes-box">
-          <div class="section-label" style="color: var(--primary);">🎯 Coach's Recovery Directives</div>
-          <textarea class="coach-notes-input" id="coach-notes-tue" placeholder="Mobility suggestions or recovery instructions..." oninput="saveCoachNote('tue', this.value)" onblur="saveCoachNote('tue', this.value)"></textarea>
-        </div>
-
-        <button type="button" class="single-share-btn" id="share-btn-tue" onclick="shareSingleWorkout('tue')">
-          💬 Share Tuesday Activity with Coach
-        </button>
-      </div>
-    </div>
-
-    <!-- Wednesday -->
-    <div class="day-card theme-hyrox" id="card-wed">
-      <div class="day-row">
-        <div class="day-info">
-          <div class="day-tag tag-hyrox">
-            <span class="day-name">WED</span>
-            <span class="day-date" id="date-wed">--</span>
-          </div>
-          <div class="day-text-col">
-            <div class="day-title-wrap">
-              <span class="day-title-text" id="title-wed">Hyrox Conditioning</span>
-              <span class="today-pill" id="today-wed" style="display:none;">Today</span>
-              <button type="button" class="edit-day-btn" title="Edit Activity" onclick="openEditActivityModal('wed')">✏️</button>
-            </div>
-            <div class="day-sub-text" id="sub-wed">Group engine session</div>
-          </div>
-        </div>
-        <button class="check-btn" id="btn-wed" onclick="toggleSession('wed')">✓</button>
-      </div>
-
-      <button type="button" class="drawer-toggle-btn" onclick="toggleDrawer('wed')">
-        <span id="drawer-icon-wed">▸</span> Log & Notes <span class="drawer-indicator" id="dot-wed" style="display:none;"></span>
-      </button>
-
-      <div class="day-drawer" id="drawer-wed">
-        <div class="rpe-container">
-          <div class="rpe-header">
-            <span class="section-label" style="margin:0;">⚡ Session RPE / Effort</span>
-            <button type="button" class="rpe-clear-btn" onclick="clearRpe('wed')">Clear</button>
-          </div>
-          <div class="rpe-chips" id="rpe-chips-wed"></div>
-          <div class="rpe-rating-label" id="rpe-label-wed"></div>
-        </div>
-
-        <div class="notes-box">
-          <div class="section-label">📝 Client Questions & Notes</div>
-          <textarea class="notes-input" id="notes-wed" placeholder="What did you do in Hyrox? (e.g. sleds, 100 lunges, wall balls...)" oninput="saveNote('wed', this.value)" onblur="saveNote('wed', this.value)"></textarea>
-        </div>
-
-        <div class="notes-box">
-          <div class="section-label" style="color: var(--primary);">🎯 Coach's Notes & Directives</div>
-          <textarea class="coach-notes-input" id="coach-notes-wed" placeholder="Target pacing or recovery adjustments..." oninput="saveCoachNote('wed', this.value)" onblur="saveCoachNote('wed', this.value)"></textarea>
-        </div>
-
-        <button type="button" class="single-share-btn" id="share-btn-wed" onclick="shareSingleWorkout('wed')">
-          💬 Share Wednesday Hyrox with Coach
-        </button>
-      </div>
-    </div>
-
-    <!-- Thursday -->
-    <div class="day-card theme-rest" id="card-thu">
-      <div class="day-row">
-        <div class="day-info">
-          <div class="day-tag tag-rest">
-            <span class="day-name">THU</span>
-            <span class="day-date" id="date-thu">--</span>
-          </div>
-          <div class="day-text-col">
-            <div class="day-title-wrap">
-              <span class="day-title-text" id="title-thu">Full Rest</span>
-              <span class="today-pill" id="today-thu" style="display:none;">Today</span>
-              <button type="button" class="edit-day-btn" title="Edit Activity" onclick="openEditActivityModal('thu')">✏️</button>
-            </div>
-            <div class="day-sub-text" id="sub-thu">Fuel up for Friday weights</div>
-          </div>
-        </div>
-        <button class="check-btn" id="btn-thu" onclick="toggleSession('thu')">✓</button>
-      </div>
-
-      <button type="button" class="drawer-toggle-btn" onclick="toggleDrawer('thu')">
-        <span id="drawer-icon-thu">▸</span> Log & Notes <span class="drawer-indicator" id="dot-thu" style="display:none;"></span>
-      </button>
-
-      <div class="day-drawer" id="drawer-thu">
-        <div class="rpe-container">
-          <div class="rpe-header">
-            <span class="section-label" style="margin:0;">⚡ Recovery RPE / Readiness</span>
-            <button type="button" class="rpe-clear-btn" onclick="clearRpe('thu')">Clear</button>
-          </div>
-          <div class="rpe-chips" id="rpe-chips-thu"></div>
-          <div class="rpe-rating-label" id="rpe-label-thu"></div>
-        </div>
-
-        <div class="notes-box">
-          <div class="section-label">📝 Rest Day Activity & Notes</div>
-          <textarea class="notes-input" id="notes-thu" placeholder="How are energy levels / soreness ahead of Friday lifting?..." oninput="saveNote('thu', this.value)" onblur="saveNote('thu', this.value)"></textarea>
-        </div>
-
-        <div class="notes-box">
-          <div class="section-label" style="color: var(--primary);">🎯 Coach's Recovery Directives</div>
-          <textarea class="coach-notes-input" id="coach-notes-thu" placeholder="Pre-workout nutrition/sleep reminders..." oninput="saveCoachNote('thu', this.value)" onblur="saveCoachNote('thu', this.value)"></textarea>
-        </div>
-
-        <button type="button" class="single-share-btn" id="share-btn-thu" onclick="shareSingleWorkout('thu')">
-          💬 Share Thursday Activity with Coach
-        </button>
-      </div>
-    </div>
-
-    <!-- Friday Overview -->
-    <div class="day-card theme-strength" id="card-fri">
-      <div class="day-row">
-        <div class="day-info">
-          <div class="day-tag tag-str">
-            <span class="day-name">FRI</span>
-            <span class="day-date" id="date-fri">--</span>
-          </div>
-          <div class="day-text-col">
-            <div class="day-title-wrap">
-              <span class="day-title-text" id="title-fri">Friday Strength (Workout A)</span>
-              <span class="today-pill" id="today-fri" style="display:none;">Today</span>
-              <button type="button" class="edit-day-btn" title="Edit Activity" onclick="openEditActivityModal('fri')">✏️</button>
-            </div>
-            <div class="day-sub-text" id="sub-fri">Solo Tracked Session</div>
-          </div>
-        </div>
-        <button class="check-btn" id="btn-fri" onclick="toggleSession('fri')">✓</button>
-      </div>
-      <button type="button" class="single-share-btn" style="margin-top: 10px;" onclick="switchTab('workout')">
-        🏋️ Open Friday Strength Tracker & Notes
-      </button>
-    </div>
-
-    <!-- Saturday -->
-    <div class="day-card theme-hyrox" id="card-sat">
-      <div class="day-row">
-        <div class="day-info">
-          <div class="day-tag tag-hyrox">
-            <span class="day-name">SAT</span>
-            <span class="day-date" id="date-sat">--</span>
-          </div>
-          <div class="day-text-col">
-            <div class="day-title-wrap">
-              <span class="day-title-text" id="title-sat">Hyrox Endurance</span>
-              <span class="today-pill" id="today-sat" style="display:none;">Today</span>
-              <button type="button" class="edit-day-btn" title="Edit Activity" onclick="openEditActivityModal('sat')">✏️</button>
-            </div>
-            <div class="day-sub-text" id="sub-sat">Weekend functional workout</div>
-          </div>
-        </div>
-        <button class="check-btn" id="btn-sat" onclick="toggleSession('sat')">✓</button>
-      </div>
-
-      <button type="button" class="drawer-toggle-btn" onclick="toggleDrawer('sat')">
-        <span id="drawer-icon-sat">▸</span> Log & Notes <span class="drawer-indicator" id="dot-sat" style="display:none;"></span>
-      </button>
-
-      <div class="day-drawer" id="drawer-sat">
-        <div class="rpe-container">
-          <div class="rpe-header">
-            <span class="section-label" style="margin:0;">⚡ Session RPE / Effort</span>
-            <button type="button" class="rpe-clear-btn" onclick="clearRpe('sat')">Clear</button>
-          </div>
-          <div class="rpe-chips" id="rpe-chips-sat"></div>
-          <div class="rpe-rating-label" id="rpe-label-sat"></div>
-        </div>
-
-        <div class="notes-box">
-          <div class="section-label">📝 Client Questions & Notes</div>
-          <textarea class="notes-input" id="notes-sat" placeholder="Saturday Hyrox notes or volume..." oninput="saveNote('sat', this.value)" onblur="saveNote('sat', this.value)"></textarea>
-        </div>
-
-        <div class="notes-box">
-          <div class="section-label" style="color: var(--primary);">🎯 Coach's Notes & Directives</div>
-          <textarea class="coach-notes-input" id="coach-notes-sat" placeholder="Coach's weekend cues..." oninput="saveCoachNote('sat', this.value)" onblur="saveCoachNote('sat', this.value)"></textarea>
-        </div>
-
-        <button type="button" class="single-share-btn" id="share-btn-sat" onclick="shareSingleWorkout('sat')">
-          💬 Share Saturday Hyrox with Coach
-        </button>
-      </div>
-    </div>
-
-    <!-- Sunday -->
-    <div class="day-card theme-rest" id="card-sun">
-      <div class="day-row">
-        <div class="day-info">
-          <div class="day-tag tag-rest">
-            <span class="day-name">SUN</span>
-            <span class="day-date" id="date-sun">--</span>
-          </div>
-          <div class="day-text-col">
-            <div class="day-title-wrap">
-              <span class="day-title-text" id="title-sun">Full Rest</span>
-              <span class="today-pill" id="today-sun" style="display:none;">Today</span>
-              <button type="button" class="edit-day-btn" title="Edit Activity" onclick="openEditActivityModal('sun')">✏️</button>
-            </div>
-            <div class="day-sub-text" id="sub-sun">Total recovery</div>
-          </div>
-        </div>
-        <button class="check-btn" id="btn-sun" onclick="toggleSession('sun')">✓</button>
-      </div>
-
-      <button type="button" class="drawer-toggle-btn" onclick="toggleDrawer('sun')">
-        <span id="drawer-icon-sun">▸</span> Log & Notes <span class="drawer-indicator" id="dot-sun" style="display:none;"></span>
-      </button>
-
-      <div class="day-drawer" id="drawer-sun">
-        <div class="rpe-container">
-          <div class="rpe-header">
-            <span class="section-label" style="margin:0;">⚡ Weekend Fatigue / RPE</span>
-            <button type="button" class="rpe-clear-btn" onclick="clearRpe('sun')">Clear</button>
-          </div>
-          <div class="rpe-chips" id="rpe-chips-sun"></div>
-          <div class="rpe-rating-label" id="rpe-label-sun"></div>
-        </div>
-
-        <div class="notes-box">
-          <div class="section-label">📝 Sunday Recovery & Notes</div>
-          <textarea class="notes-input" id="notes-sun" placeholder="Any fatigue, weekend walk, or check-in notes for coach?..." oninput="saveNote('sun', this.value)" onblur="saveNote('sun', this.value)"></textarea>
-        </div>
-
-        <div class="notes-box">
-          <div class="section-label" style="color: var(--primary);">🎯 Coach's Recovery Directives</div>
-          <textarea class="coach-notes-input" id="coach-notes-sun" placeholder="Weekend review notes..." oninput="saveCoachNote('sun', this.value)" onblur="saveCoachNote('sun', this.value)"></textarea>
-        </div>
-
-        <button type="button" class="single-share-btn" id="share-btn-sun" onclick="shareSingleWorkout('sun')">
-          💬 Share Sunday Activity with Coach
-        </button>
-      </div>
-    </div>
+    <div id="days"></div>
   </div>
 </div>
 
-<!-- ================= TAB 2: FRIDAY STRENGTH ================= -->
-<div class="content-area" id="workout-tab" style="display:none;">
+<div class="content-area" id="workout-tab" style="display:none">
+  <div class="banner" id="past-banner2"></div>
   <div class="timer-bar">
-    <div>
-      <span style="font-size: 0.75rem; color: var(--text-muted); display: block;">REST TIMER</span>
-      <span class="timer-display" id="time-left">01:30</span>
-    </div>
+    <div><span style="font-size:.75rem;color:var(--muted);display:block">REST TIMER</span><span class="timer-display" id="time-left">01:30</span></div>
     <div class="timer-controls">
-      <button class="t-btn" onclick="setTimer(60)">60s</button>
-      <button class="t-btn" onclick="setTimer(90)">90s</button>
-      <button class="t-btn" onclick="setTimer(120)">2m</button>
+      <button class="t-btn" onclick="setTimer(60)">60s</button><button class="t-btn" onclick="setTimer(90)">90s</button><button class="t-btn" onclick="setTimer(120)">2m</button>
       <button class="t-btn start" id="timer-toggle-btn" onclick="toggleTimer()">Start</button>
     </div>
   </div>
-
   <div class="card" id="workout-container"></div>
-  
-  <button type="button" class="add-ex-btn" onclick="openAddExerciseModal()">
-    ➕ Add New Exercise to This Workout
-  </button>
-
+  <button type="button" class="add-ex-btn" onclick="openAddExerciseModal()">➕ Add New Exercise to This Workout</button>
   <div class="card">
-    <div class="card-title">
-      <span>Friday Session Review</span>
-      <span style="font-size:0.75rem; color:var(--primary);">Self-Monitoring</span>
+    <div class="card-title"><span>Friday Session Review</span><span style="font-size:.75rem;color:var(--primary)">Self-Monitoring</span></div>
+    <div class="rpe-container">
+      <div class="rpe-header"><span class="section-label" style="margin:0">⚡ How Did Today's Lifting Feel? (RPE)</span><button type="button" class="rpe-clear-btn" onclick="clearRpe('strength')">Clear</button></div>
+      <div class="rpe-chips" id="rpe-chips-strength"></div><div class="rpe-rating-label" id="rpe-label-strength"></div>
     </div>
-
-    <div class="rpe-container" style="border:none; margin:0; padding:0;">
-      <div class="rpe-header">
-        <span class="section-label" style="margin:0;">⚡ How Did Today's Lifting Feel? (RPE Scale)</span>
-        <button type="button" class="rpe-clear-btn" onclick="clearRpe('strength')">Clear</button>
-      </div>
-      <div class="rpe-chips" id="rpe-chips-strength"></div>
-      <div class="rpe-rating-label" id="rpe-label-strength"></div>
-    </div>
-
-    <div class="notes-box" style="margin-top:12px;">
-      <div class="section-label">📝 Client Questions, Problems & Changes</div>
-      <textarea class="notes-input" id="notes-strength" placeholder="Any pain/niggles? Did you change any weights or substitute exercises? Write questions here..." oninput="saveNote('strength', this.value)" onblur="saveNote('strength', this.value)"></textarea>
-    </div>
-
-    <div class="notes-box" style="margin-top:12px;">
-      <div class="section-label" style="color: var(--primary);">🎯 Coach's Notes & Programming Cues</div>
-      <textarea class="coach-notes-input" id="coach-notes-strength" placeholder="Form cues, tempo reminders, or weight progression directives..." oninput="saveCoachNote('strength', this.value)" onblur="saveCoachNote('strength', this.value)"></textarea>
-    </div>
-
-    <button type="button" class="whatsapp-btn" onclick="shareSingleWorkout('strength')">
-      💬 Share Friday Strength with Coach
-    </button>
+    <div class="notes-box"><div class="section-label">📝 Client Questions, Problems & Changes</div>
+      <textarea class="notes-input" id="notes-strength" placeholder="Any pain/niggles? Changed any weights or exercises? Questions..." oninput="saveNote('strength',this.value)" onblur="flushNotes()"></textarea></div>
+    <div class="notes-box"><div class="section-label" style="color:var(--primary)">🎯 Coach's Notes & Programming Cues</div>
+      <textarea class="coach-notes-input" id="coach-notes-strength" placeholder="Form cues, tempo, weight progression..." oninput="saveCoachNote('strength',this.value)" onblur="flushNotes()"></textarea></div>
+    <button type="button" class="whatsapp-btn" onclick="shareSingleWorkout('strength')">💬 Share Friday Strength with Coach</button>
   </div>
 </div>
 
-<!-- ================= MODAL 1: ADD / EDIT EXERCISE ================= -->
-<div class="modal-overlay" id="exercise-modal">
-  <div class="modal-card">
-    <div class="modal-title" id="modal-title-text">Add Exercise</div>
-    
-    <div class="form-group">
-      <label>Exercise Name</label>
-      <input type="text" class="form-control" id="modal-ex-name" placeholder="e.g. Romanian Deadlift">
-    </div>
-    
-    <div class="form-group">
-      <label>Number of Sets</label>
-      <input type="number" class="form-control" id="modal-ex-sets" min="1" max="10" value="4">
-    </div>
-
-    <div class="form-group">
-      <label>Target Reps / Directive</label>
-      <input type="text" class="form-control" id="modal-ex-reps" placeholder="e.g. 8 reps or 15 reps / leg">
-    </div>
-
-    <div class="modal-actions">
-      <button type="button" class="btn-secondary" onclick="closeExerciseModal()">Cancel</button>
-      <button type="button" class="btn-primary" onclick="saveExerciseFromModal()">Save Exercise</button>
-    </div>
-  </div>
+<div class="content-area" id="history-tab" style="display:none">
+  <div class="card"><div class="card-title"><span>Training History</span></div>
+    <div style="font-size:.78rem;color:var(--muted);margin-bottom:10px">Tap any week to open it. Nothing is ever deleted when a new cycle starts.</div>
+    <div id="history-list"></div></div>
 </div>
 
-<!-- ================= MODAL 2: EDIT SCHEDULE ACTIVITY ================= -->
-<div class="modal-overlay" id="activity-modal">
-  <div class="modal-card">
-    <div class="modal-title" id="activity-modal-title">Edit Day Activity</div>
-    
-    <div class="form-group">
-      <label>Activity Name</label>
-      <input type="text" class="form-control" id="modal-act-title" placeholder="e.g. Boxing Session, Strength, Rest">
-    </div>
-    
-    <div class="form-group">
-      <label>Subtitle / Description</label>
-      <input type="text" class="form-control" id="modal-act-sub" placeholder="e.g. 1-on-1 with PT tonight, Solo weights">
-    </div>
+<div class="modal-overlay" id="exercise-modal"><div class="modal-card">
+  <div class="modal-title" id="modal-title-text">Add Exercise</div>
+  <div class="form-group"><label>Exercise Name</label><input type="text" class="form-control" id="modal-ex-name" placeholder="e.g. Romanian Deadlift"></div>
+  <div class="form-group"><label>Number of Sets</label><input type="number" class="form-control" id="modal-ex-sets" min="1" max="10" value="4"></div>
+  <div class="form-group"><label>Target Reps / Directive</label><input type="text" class="form-control" id="modal-ex-reps" placeholder="e.g. 8 reps"></div>
+  <div class="modal-actions"><button type="button" class="btn-secondary" onclick="closeExerciseModal()">Cancel</button><button type="button" class="btn-primary" onclick="saveExerciseFromModal()">Save Exercise</button></div>
+</div></div>
 
-    <div class="modal-actions">
-      <button type="button" class="btn-secondary" onclick="resetActivityToDefault()">Reset Default</button>
-      <button type="button" class="btn-secondary" onclick="closeActivityModal()">Cancel</button>
-      <button type="button" class="btn-primary" onclick="saveActivityFromModal()">Save Activity</button>
-    </div>
-  </div>
-</div>
+<div class="modal-overlay" id="activity-modal"><div class="modal-card">
+  <div class="modal-title" id="activity-modal-title">Edit Day Activity</div>
+  <div class="form-group"><label>Activity Name</label><input type="text" class="form-control" id="modal-act-title"></div>
+  <div class="form-group"><label>Subtitle / Description</label><input type="text" class="form-control" id="modal-act-sub"></div>
+  <div class="modal-actions"><button type="button" class="btn-secondary" onclick="resetActivityToDefault()">Reset Default</button><button type="button" class="btn-secondary" onclick="closeActivityModal()">Cancel</button><button type="button" class="btn-primary" onclick="saveActivityFromModal()">Save</button></div>
+</div></div>
 
 <script>
-  // ================= CONFIGURATION =================
-  const COACH_PHONE_NUMBER = "447725918315";
+const COACH_PHONE_NUMBER = "447725918315";
+// The first cycle keeps your existing saved data (old key format). New cycles get their own keys.
+const LEGACY_CYCLE = "2026-11-02";
 
-  // Base Monday anchor for Week 1 (Set to today's Monday or your start date)
-  const PROGRAM_START_DATE = "2026-11-02";
+const firebaseConfig = {
+  apiKey: "AIzaSyBvgcECGibtm3jy7y31-6AGDezPDdAHDL4",
+  authDomain: "training-app-3070c.firebaseapp.com",
+  databaseURL: "https://training-app-3070c-default-rtdb.europe-west1.firebasedatabase.app",
+  projectId: "training-app-3070c",
+  storageBucket: "training-app-3070c.firebasestorage.app",
+  messagingSenderId: "303942494753",
+  appId: "1:303942494753:web:4d065aff0a0431211c1160"
+};
 
-  const firebaseConfig = {
-    apiKey: "AIzaSyBvgcECGibtm3jy7y31-6AGDezPDdAHDL4",
-    authDomain: "training-app-3070c.firebaseapp.com",
-    databaseURL: "https://training-app-3070c-default-rtdb.europe-west1.firebasedatabase.app",
-    projectId: "training-app-3070c",
-    storageBucket: "training-app-3070c.firebasestorage.app",
-    messagingSenderId: "303942494753",
-    appId: "1:303942494753:web:4d065aff0a0431211c1160"
-  };
+let db = null, appState = {}, currentWeek = 1, cycleId = LEGACY_CYCLE, currentTab = 'schedule';
+let timerInterval = null, timerSeconds = 90, timerRunning = false;
+let editingExerciseIndex = -1, editingDayKey = null;
+const statusEl = document.getElementById('sync-status');
+function setOnlineStatus(ok, t) { statusEl.className = "status-badge " + (ok ? "status-online" : "status-offline"); statusEl.innerText = (ok ? "🟢 " : "🔴 ") + t; }
 
-  let db = null;
-  const statusEl = document.getElementById('sync-status');
+try {
+  if (typeof firebase !== 'undefined') {
+    if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
+    db = firebase.database();
+    db.ref(".info/connected").on("value", s => setOnlineStatus(s.val() === true, s.val() === true ? "Cloud Synced" : "Connecting..."));
+  } else setOnlineStatus(false, "SDK Blocked");
+} catch (e) { setOnlineStatus(false, "Init Error"); }
 
-  function setOnlineStatus(online, text) {
-    if (!statusEl) return;
-    statusEl.className = "status-badge " + (online ? "status-online" : "status-offline");
-    statusEl.innerText = (online ? "🟢 " : "🔴 ") + text;
-  }
+const dayKeys = ['mon','tue','wed','thu','fri','sat','sun'];
+const dayNames = { mon:"Monday", tue:"Tuesday", wed:"Wednesday", thu:"Thursday", fri:"Friday", sat:"Saturday", sun:"Sunday" };
+const dayOffsetMap = { mon:0, tue:1, wed:2, thu:3, fri:4, sat:5, sun:6 };
+const icons = { mon:"🥊", tue:"🧘", wed:"🏃", thu:"🛌", fri:"🏋️", sat:"🏃", sun:"🛌" };
+const dayTheme = { mon:"boxing", tue:"rest", wed:"hyrox", thu:"rest", fri:"strength", sat:"hyrox", sun:"rest" };
+const defaultSchedule = {
+  mon:{title:"Boxing Session",sub:"1-on-1 with PT"}, tue:{title:"Mobility & Rest",sub:"Light walk & active recovery"},
+  wed:{title:"Hyrox Conditioning",sub:"Group engine session"}, thu:{title:"Full Rest",sub:"Fuel up for Friday weights"},
+  fri:{title:"Friday Strength",sub:"Solo Tracked Session"}, sat:{title:"Hyrox Endurance",sub:"Weekend functional workout"},
+  sun:{title:"Full Rest",sub:"Total recovery"}
+};
+const defaultWorkouts = {
+  A:{name:"Workout A: Squat & Upper Push",exercises:[
+    {name:"Barbell Back Squat",sets:4,reps:"8 reps"},{name:"Bench Press (Barbell/DB)",sets:4,reps:"8 reps"},
+    {name:"Bent-Over Rows (Barbell/DB)",sets:4,reps:"8 reps"},{name:"GHD or Hamstring Curls",sets:2,reps:"15 reps"},
+    {name:"Overhead DB Shoulder Press",sets:4,reps:"8 reps"}]},
+  B:{name:"Workout B: Hinge & Upper Pull",exercises:[
+    {name:"Deadlift (Trap Bar or Barbell)",sets:4,reps:"8 reps"},{name:"Front Squats (or Goblet Squat)",sets:4,reps:"8 reps"},
+    {name:"Ring Rows (Inverted Rows)",sets:4,reps:"8 reps"},{name:"Walking Lunges",sets:2,reps:"15 reps / leg"},
+    {name:"Incline DB Press",sets:2,reps:"15 reps"}]}
+};
+const rpeLevels = [
+  "1 - 😃 Very Easy / Recovery","2 - 😊 Easy / Warmup pace","3 - 🙂 Light Effort","4 - Moderate / Comfortable","5 - 😐 Noticeable Effort",
+  "6 - Steady / Challenging","7 - 😤 Vigorous / ~3 reps left","8 - 😫 Heavy / ~2 reps left","9 - 🥵 Very Hard / ~1 rep left","10 - 💀 Maximum Effort / Failure"
+];
 
+function esc(s) { return String(s == null ? '' : s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+
+// ---------- Data layer ----------
+function syncData(key, value) {
+  appState[key] = value;
+  try { localStorage.setItem(key, typeof value === 'object' ? JSON.stringify(value) : value); } catch (e) {}
+  if (db) db.ref("client_training_data/" + key).set(value);
+}
+function getData(key) {
+  if (appState[key] !== undefined && appState[key] !== null) return appState[key];
   try {
-    if (typeof firebase !== 'undefined' && firebase.initializeApp) {
-      if (!firebase.apps.length) {
-        firebase.initializeApp(firebaseConfig);
-      }
-      db = firebase.database();
-      
-      db.ref(".info/connected").on("value", snap => {
-        if (snap.val() === true) {
-          setOnlineStatus(true, "Cloud Synced");
-        } else {
-          setOnlineStatus(false, "Connecting...");
-        }
-      });
-    } else {
-      setOnlineStatus(false, "SDK Blocked");
-    }
-  } catch (e) {
-    console.warn("Firebase startup error:", e);
-    setOnlineStatus(false, "Init Error");
-  }
+    const s = localStorage.getItem(key);
+    if (s && (s[0] === '{' || s[0] === '[')) return JSON.parse(s);
+    return s || '';
+  } catch (e) { return ''; }
+}
+if (db) {
+  db.ref("client_training_data").on("value", snap => {
+    const d = snap.val();
+    if (d) { appState = d; refreshAll(); }
+  }, err => setOnlineStatus(false, "Sync Denied"));
+}
 
-  let currentWeek = 1;
-  let timerInterval = null;
-  let timerSeconds = 90;
-  let timerRunning = false;
-  let appState = {};
-  let editingExerciseIndex = -1;
-  let editingDayKey = null;
+// ---------- Cycles & keys ----------
+function cycleList() {
+  let c = getData("cycles");
+  if (c && !Array.isArray(c)) c = Object.values(c);
+  if (!Array.isArray(c) || !c.length) c = [LEGACY_CYCLE];
+  if (c.indexOf(LEGACY_CYCLE) < 0) c.push(LEGACY_CYCLE);
+  return c.slice().sort();
+}
+function wk(week, cid) { cid = cid || cycleId; return (cid === LEGACY_CYCLE ? "" : cid + "_") + week; }
+function K(type, week, id, cid) { return type + "_" + wk(week, cid) + "_" + id; }
+function cycleStart(cid) { return new Date((cid || cycleId) + "T00:00:00"); }
+function getComputedDate(week, day, cid) { const d = cycleStart(cid); d.setDate(d.getDate() + (week - 1) * 7 + dayOffsetMap[day]); return d; }
+function fmt(d) { return d.toLocaleDateString('en-GB', { day:'numeric', month:'short' }); }
+function fmtLong(cid) { return cycleStart(cid).toLocaleDateString('en-GB', { day:'numeric', month:'short', year:'numeric' }); }
+function sameDay(a, b) { return a.getFullYear() === b.getFullYear() && a.getMonth() === b.getMonth() && a.getDate() === b.getDate(); }
+function isoDate(d) { return d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, '0') + "-" + String(d.getDate()).padStart(2, '0'); }
 
-  const dayKeys = ['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun'];
-  const dayOffsetMap = { mon: 0, tue: 1, wed: 2, thu: 3, fri: 4, sat: 5, sun: 6 };
+function pickCurrentPosition() {
+  const today = new Date(); today.setHours(0, 0, 0, 0);
+  const cs = cycleList(); let chosen = cs[cs.length - 1];
+  for (const c of cs) if (cycleStart(c) <= today) chosen = c;
+  const days = Math.floor((today - cycleStart(chosen)) / 86400000);
+  cycleId = chosen;
+  currentWeek = Math.min(4, Math.max(1, Math.floor(days / 7) + 1));
+}
+function selectCycle(cid) { cycleId = cid; currentWeek = 1; refreshAll(); }
+function openWeek(cid, w) { cycleId = cid; currentWeek = w; switchTab('schedule'); }
+function newCycle() {
+  const cs = cycleList(), last = cs[cs.length - 1];
+  const d = cycleStart(last); d.setDate(d.getDate() + 28);
+  const input = prompt("Start a new 4-week cycle.\nEnter its first Monday (YYYY-MM-DD). Your old cycles stay saved in History.", isoDate(d));
+  if (!input) return;
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(input) || isNaN(cycleStart(input)) || cycleStart(input).getDay() !== 1) { alert("Please enter a valid Monday date like 2026-11-30"); return; }
+  if (cs.indexOf(input) >= 0) { alert("That cycle already exists."); return; }
+  syncData("cycles", cs.concat([input]).sort());
+  selectCycle(input);
+}
 
-  const defaultSchedule = {
-    mon: { title: "Boxing Session", sub: "1-on-1 with PT" },
-    tue: { title: "Mobility & Rest", sub: "Light walk & active recovery" },
-    wed: { title: "Hyrox Conditioning", sub: "Group engine session" },
-    thu: { title: "Full Rest", sub: "Fuel up for Friday weights" },
-    fri: { title: "Friday Strength", sub: "Solo Tracked Session" },
-    sat: { title: "Hyrox Endurance", sub: "Weekend functional workout" },
-    sun: { title: "Full Rest", sub: "Total recovery" }
-  };
+// Previous time this same workout (A/B) was done, for "last time" weights
+function prevRef() {
+  if (currentWeek > 2) return { cid: cycleId, week: currentWeek - 2 };
+  const cs = cycleList(), i = cs.indexOf(cycleId);
+  return i > 0 ? { cid: cs[i - 1], week: currentWeek + 2 } : null;
+}
 
-  const defaultWorkouts = {
-    A: {
-      name: "Workout A: Squat & Upper Push",
-      exercises: [
-        { name: "Barbell Back Squat", sets: 4, reps: "8 reps" },
-        { name: "Bench Press (Barbell/DB)", sets: 4, reps: "8 reps" },
-        { name: "Bent-Over Rows (Barbell/DB)", sets: 4, reps: "8 reps" },
-        { name: "GHD or Hamstring Curls", sets: 2, reps: "15 reps" },
-        { name: "Overhead DB Shoulder Press", sets: 4, reps: "8 reps" }
-      ]
-    },
-    B: {
-      name: "Workout B: Hinge & Upper Pull",
-      exercises: [
-        { name: "Deadlift (Trap Bar or Barbell)", sets: 4, reps: "8 reps" },
-        { name: "Front Squats (or Goblet Squat)", sets: 4, reps: "8 reps" },
-        { name: "Ring Rows (Inverted Rows)", sets: 4, reps: "8 reps" },
-        { name: "Walking Lunges", sets: 2, reps: "15 reps / leg" },
-        { name: "Incline DB Press", sets: 2, reps: "15 reps" }
-      ]
-    }
-  };
-
-  if (db) {
-    db.ref("client_training_data").once("value").then(snap => {
-      const data = snap.val();
-      if (data) {
-        appState = data;
-        updateUI();
-      }
-    }).catch(err => {
-      console.warn("Initial load notice:", err);
-      if (err.message && err.message.includes("permission_denied")) {
-        setOnlineStatus(false, "Rules Locked");
-      }
-    });
-
-    db.ref("client_training_data").on("value", snapshot => {
-      const data = snapshot.val();
-      if (data) {
-        appState = data;
-        updateUI();
-      }
-    }, err => {
-      console.warn("Live sync error:", err);
-      setOnlineStatus(false, "Sync Denied");
-    });
-  }
-
-  function syncData(key, value) {
-    appState[key] = value;
-    try {
-      localStorage.setItem(key, typeof value === 'object' ? JSON.stringify(value) : value);
-    } catch (e) {}
-    if (db) {
-      db.ref("client_training_data/" + key).set(value);
-    }
-  }
-
-  function getData(key) {
-    if (appState[key] !== undefined && appState[key] !== null) return appState[key];
-    try {
-      const stored = localStorage.getItem(key);
-      if (stored && (stored.startsWith('{') || stored.startsWith('['))) {
-        return JSON.parse(stored);
-      }
-      return stored || '';
-    } catch (e) {
-      return '';
-    }
-  }
-
-  function getWorkoutData(workoutKey) {
-    const custom = getData("program_" + workoutKey);
-    if (custom && Array.isArray(custom.exercises) && custom.exercises.length > 0) {
-      return custom;
-    }
-    return defaultWorkouts[workoutKey];
-  }
-
-  function saveWorkoutData(workoutKey, workoutObj) {
-    syncData("program_" + workoutKey, workoutObj);
-    renderWorkout();
-  }
-
-  function getActivityData(day) {
-    const customTitle = getData("act_title_" + day);
-    const customSub = getData("act_sub_" + day);
-    const def = defaultSchedule[day] || { title: day.toUpperCase(), sub: "" };
-    return {
-      title: customTitle || def.title,
-      sub: customSub !== '' && customSub !== null && customSub !== undefined ? customSub : def.sub
-    };
-  }
-
-  function openEditActivityModal(day) {
-    editingDayKey = day;
-    const act = getActivityData(day);
-    const dayNames = { mon: "Monday", tue: "Tuesday", wed: "Wednesday", thu: "Thursday", fri: "Friday", sat: "Saturday", sun: "Sunday" };
-    document.getElementById('activity-modal-title').innerText = "Edit " + (dayNames[day] || day.toUpperCase()) + " Activity";
-    document.getElementById('modal-act-title').value = act.title;
-    document.getElementById('modal-act-sub').value = act.sub;
-    document.getElementById('activity-modal').style.display = "flex";
-  }
-
-  function closeActivityModal() {
-    document.getElementById('activity-modal').style.display = "none";
-  }
-
-  function saveActivityFromModal() {
-    if (!editingDayKey) return;
-    const newTitle = document.getElementById('modal-act-title').value.trim();
-    const newSub = document.getElementById('modal-act-sub').value.trim();
-    if (!newTitle) {
-      alert("Please enter an activity name");
+// ---------- Schedule UI ----------
+function getActivityData(day) {
+  const t = getData("act_title_" + day), s = getData("act_sub_" + day), def = defaultSchedule[day];
+  return { title: t || def.title, sub: (s !== '' && s != null) ? s : def.sub };
+}
+function buildDays() {
+  let h = '';
+  dayKeys.forEach(d => {
+    const th = dayTheme[d], rest = th === 'rest';
+    h += '<div class="day-card theme-' + th + '" id="card-' + d + '"><div class="day-row"><div class="day-info">' +
+      '<div class="day-tag tag-' + th + '"><span class="day-name">' + d + '</span><span class="day-date" id="date-' + d + '">--</span></div>' +
+      '<div class="day-text-col"><div class="day-title-wrap"><span class="day-title-text" id="title-' + d + '"></span>' +
+      '<span class="today-pill" id="today-' + d + '" style="display:none">Today</span>' +
+      '<button type="button" class="edit-day-btn" onclick="openEditActivityModal(\'' + d + '\')">✏️</button></div>' +
+      '<div class="day-sub-text" id="sub-' + d + '"></div></div></div>' +
+      '<button class="check-btn" id="btn-' + d + '" onclick="toggleSession(\'' + d + '\')">✓</button></div>';
+    if (d === 'fri') {
+      h += '<button type="button" class="single-share-btn" onclick="switchTab(\'workout\')">🏋️ Open Friday Strength Tracker & Notes</button></div>';
       return;
     }
-    syncData("act_title_" + editingDayKey, newTitle);
-    syncData("act_sub_" + editingDayKey, newSub);
-    closeActivityModal();
-    updateUI();
-  }
+    h += '<button type="button" class="drawer-toggle-btn" onclick="toggleDrawer(\'' + d + '\')"><span id="drawer-icon-' + d + '">▸</span> Log & Notes <span class="drawer-indicator" id="dot-' + d + '"></span></button>' +
+      '<div class="day-drawer" id="drawer-' + d + '"><div class="rpe-container"><div class="rpe-header"><span class="section-label" style="margin:0">⚡ ' + (rest ? 'Recovery RPE / Strain' : 'Session RPE / Effort') + '</span>' +
+      '<button type="button" class="rpe-clear-btn" onclick="clearRpe(\'' + d + '\')">Clear</button></div><div class="rpe-chips" id="rpe-chips-' + d + '"></div><div class="rpe-rating-label" id="rpe-label-' + d + '"></div></div>' +
+      '<div class="notes-box"><div class="section-label">📝 ' + (rest ? 'Recovery Notes' : 'Client Questions & Notes') + '</div>' +
+      '<textarea class="notes-input" id="notes-' + d + '" placeholder="How did it go? Questions or feedback..." oninput="saveNote(\'' + d + '\',this.value)" onblur="flushNotes()"></textarea></div>' +
+      '<div class="notes-box"><div class="section-label" style="color:var(--primary)">🎯 Coach\'s Notes & Directives</div>' +
+      '<textarea class="coach-notes-input" id="coach-notes-' + d + '" placeholder="Coach\'s cues or feedback..." oninput="saveCoachNote(\'' + d + '\',this.value)" onblur="flushNotes()"></textarea></div>' +
+      '<button type="button" class="single-share-btn" id="share-btn-' + d + '" onclick="shareSingleWorkout(\'' + d + '\')"></button></div></div>';
+  });
+  document.getElementById('days').innerHTML = h;
+}
+function toggleDrawer(d) {
+  const el = document.getElementById("drawer-" + d), open = el.classList.toggle("open");
+  document.getElementById("drawer-icon-" + d).innerText = open ? "▾" : "▸";
+}
+function toggleSession(d) { const k = K("session", currentWeek, d); syncData(k, getData(k) === '1' ? '0' : '1'); refreshAll(); }
 
-  function resetActivityToDefault() {
-    if (!editingDayKey) return;
-    const def = defaultSchedule[editingDayKey];
-    syncData("act_title_" + editingDayKey, def.title);
-    syncData("act_sub_" + editingDayKey, def.sub);
-    closeActivityModal();
-    updateUI();
-  }
+// debounced notes
+const noteTimers = {};
+function queueSave(key, val) {
+  appState[key] = val;
+  try { localStorage.setItem(key, val); } catch (e) {}
+  clearTimeout(noteTimers[key]);
+  noteTimers[key] = setTimeout(() => { delete noteTimers[key]; syncData(key, val); }, 600);
+}
+function flushNotes() { Object.keys(noteTimers).forEach(k => { clearTimeout(noteTimers[k]); delete noteTimers[k]; syncData(k, appState[k]); }); }
+function saveNote(s, v) { queueSave(K("note", currentWeek, s), v); updateDot(s); }
+function saveCoachNote(s, v) { queueSave(K("coach_note", currentWeek, s), v); updateDot(s); }
+function updateDot(s) {
+  const dot = document.getElementById("dot-" + s); if (!dot) return;
+  const has = getData(K("note", currentWeek, s)) || getData(K("coach_note", currentWeek, s)) || parseInt(getData(K("rpe", currentWeek, s)) || 0) > 0;
+  dot.style.display = has ? "inline-block" : "none";
+}
+function renderRpe(s) {
+  const c = document.getElementById("rpe-chips-" + s); if (!c) return;
+  const v = parseInt(getData(K("rpe", currentWeek, s)) || 0);
+  let h = ''; for (let i = 1; i <= 10; i++) h += '<button type="button" class="rpe-chip ' + (v === i ? 'selected' : '') + '" onclick="toggleRpe(\'' + s + '\',' + i + ')">' + i + '</button>';
+  c.innerHTML = h;
+  document.getElementById("rpe-label-" + s).innerText = v > 0 ? rpeLevels[v - 1] : "Tap 1-10 to rate";
+}
+function toggleRpe(s, v) { const k = K("rpe", currentWeek, s); syncData(k, parseInt(getData(k) || 0) === v ? 0 : v); renderRpe(s); updateDot(s); }
+function clearRpe(s) { syncData(K("rpe", currentWeek, s), 0); renderRpe(s); updateDot(s); }
 
-  function toggleDrawer(day) {
-    const drawer = document.getElementById("drawer-" + day);
-    const icon = document.getElementById("drawer-icon-" + day);
-    if (!drawer) return;
-    const isOpen = drawer.classList.contains("open");
-    drawer.classList.toggle("open", !isOpen);
-    if (icon) icon.innerText = isOpen ? "▸" : "▾";
-  }
-
-  function switchTab(tab) {
-    const tabSched = document.getElementById('tab-btn-schedule');
-    const tabWork = document.getElementById('tab-btn-workout');
-    const paneSched = document.getElementById('schedule-tab');
-    const paneWork = document.getElementById('workout-tab');
-
-    if (tab === 'schedule') {
-      tabSched.classList.add('active');
-      tabWork.classList.remove('active');
-      paneSched.style.display = 'block';
-      paneWork.style.display = 'none';
-    } else {
-      tabWork.classList.add('active');
-      tabSched.classList.remove('active');
-      paneSched.style.display = 'none';
-      paneWork.style.display = 'block';
-      renderWorkout();
+function updateBanners() {
+  const cs = cycleList(), isLatest = cycleId === cs[cs.length - 1];
+  const txt = isLatest ? '' : '📂 You are viewing a past cycle (' + fmtLong(cycleId) + '). Edits are saved to that cycle.';
+  ['past-banner', 'past-banner2'].forEach(id => { const b = document.getElementById(id); b.innerText = txt; b.style.display = txt ? 'block' : 'none'; });
+}
+function updateUI() {
+  const isA = currentWeek % 2 !== 0, today = new Date();
+  const sel = document.getElementById('cycle-select');
+  if (document.activeElement !== sel) sel.innerHTML = cycleList().slice().reverse().map(c => '<option value="' + c + '"' + (c === cycleId ? ' selected' : '') + '>Cycle starting ' + fmtLong(c) + '</option>').join('');
+  document.querySelectorAll('.week-pill').forEach((p, i) => p.classList.toggle('active', i + 1 === currentWeek));
+  document.getElementById("week-date-range").innerText = fmt(getComputedDate(currentWeek, 'mon')) + " – " + fmt(getComputedDate(currentWeek, 'sun'));
+  updateBanners();
+  dayKeys.forEach(d => {
+    const done = getData(K("session", currentWeek, d)) === '1', dd = getComputedDate(currentWeek, d), act = getActivityData(d), isToday = sameDay(today, dd);
+    document.getElementById("btn-" + d).classList.toggle('done', done);
+    document.getElementById("date-" + d).innerText = fmt(dd);
+    document.getElementById("today-" + d).style.display = isToday ? 'inline-block' : 'none';
+    document.getElementById("card-" + d).classList.toggle('is-today', isToday);
+    let title = act.title, sub = act.sub;
+    if (d === 'fri') {
+      title += " (" + (currentWeek === 4 ? "Workout B" : isA ? "Workout A" : "Workout B") + ")";
+      if (currentWeek === 4) sub = "⭐ 1-on-1 In-Person Check-In with PT";
     }
-  }
+    document.getElementById("title-" + d).innerText = title;
+    document.getElementById("sub-" + d).innerText = sub;
+    const sb = document.getElementById("share-btn-" + d); if (sb) sb.innerText = "💬 Share " + act.title + " with Coach";
+  });
+  ['mon','tue','wed','thu','sat','sun','strength'].forEach(s => {
+    const n = document.getElementById("notes-" + s), c = document.getElementById("coach-notes-" + s);
+    if (n && document.activeElement !== n) n.value = getData(K("note", currentWeek, s));
+    if (c && document.activeElement !== c) c.value = getData(K("coach_note", currentWeek, s));
+    renderRpe(s); updateDot(s);
+  });
+  const n = ['mon','wed','fri','sat'].filter(d => getData(K("session", currentWeek, d)) === '1').length;
+  document.getElementById('completion-stat').innerText = n + "/4 Core Done";
+  renderWorkout();
+}
+function refreshAll() { updateUI(); if (currentTab === 'history') renderHistory(); }
+function setWeek(w) { currentWeek = w; refreshAll(); }
 
-  function setWeek(w) {
-    currentWeek = w;
-    document.querySelectorAll('.week-pill').forEach((p, idx) => {
-      p.classList.toggle('active', idx + 1 === w);
+function switchTab(t) {
+  currentTab = t;
+  ['schedule', 'workout', 'history'].forEach(n => {
+    document.getElementById(n + '-tab').style.display = n === t ? 'block' : 'none';
+    document.getElementById('tab-btn-' + n).classList.toggle('active', n === t);
+  });
+  if (t === 'history') renderHistory(); else refreshAll();
+  window.scrollTo(0, 0);
+}
+
+// ---------- History ----------
+function renderHistory() {
+  let h = '';
+  cycleList().slice().reverse().forEach(cid => {
+    h += '<div class="hist-cycle">Cycle starting ' + fmtLong(cid) + '</div>';
+    for (let w = 1; w <= 4; w++) {
+      const done = ['mon','wed','fri','sat'].filter(d => getData(K("session", w, d, cid)) === '1').length;
+      const rpes = ['mon','tue','wed','thu','sat','sun','strength'].map(s => parseInt(getData(K("rpe", w, s, cid)) || 0)).filter(x => x > 0);
+      const avg = rpes.length ? (rpes.reduce((a, b) => a + b, 0) / rpes.length).toFixed(1) : '–';
+      const notes = ['mon','tue','wed','thu','sat','sun','strength'].filter(s => getData(K("note", w, s, cid)) || getData(K("coach_note", w, s, cid))).length;
+      h += '<div class="hist-row" onclick="openWeek(\'' + cid + '\',' + w + ')"><div><b>Week ' + w + '</b> · ' + fmt(getComputedDate(w, 'mon', cid)) + ' – ' + fmt(getComputedDate(w, 'sun', cid)) +
+        '<small>Avg RPE ' + avg + ' · ' + notes + ' day(s) with notes</small></div><span class="hist-stat">' + done + '/4</span></div>';
+    }
+  });
+  document.getElementById('history-list').innerHTML = h;
+}
+
+// ---------- Activity modal ----------
+function openEditActivityModal(d) {
+  editingDayKey = d; const a = getActivityData(d);
+  document.getElementById('activity-modal-title').innerText = "Edit " + dayNames[d] + " Activity";
+  document.getElementById('modal-act-title').value = a.title; document.getElementById('modal-act-sub').value = a.sub;
+  document.getElementById('activity-modal').style.display = "flex";
+}
+function closeActivityModal() { document.getElementById('activity-modal').style.display = "none"; }
+function saveActivityFromModal() {
+  const t = document.getElementById('modal-act-title').value.trim(), s = document.getElementById('modal-act-sub').value.trim();
+  if (!t) { alert("Please enter an activity name"); return; }
+  syncData("act_title_" + editingDayKey, t); syncData("act_sub_" + editingDayKey, s); closeActivityModal(); updateUI();
+}
+function resetActivityToDefault() {
+  const def = defaultSchedule[editingDayKey]; syncData("act_title_" + editingDayKey, def.title); syncData("act_sub_" + editingDayKey, def.sub);
+  closeActivityModal(); updateUI();
+}
+
+// ---------- Friday workout ----------
+function currentWorkoutKey() { return currentWeek % 2 !== 0 ? 'A' : 'B'; }
+function getWorkoutData(k) {
+  const c = getData("program_" + k);
+  return (c && Array.isArray(c.exercises) && c.exercises.length) ? c : defaultWorkouts[k];
+}
+function saveWorkoutData(k, w) { syncData("program_" + k, w); renderWorkout(); }
+function moveExercise(i, dir) {
+  const k = currentWorkoutKey(), w = getWorkoutData(k), l = w.exercises.slice(), t = i + dir;
+  if (t < 0 || t >= l.length) return;
+  [l[i], l[t]] = [l[t], l[i]]; w.exercises = l; saveWorkoutData(k, w);
+}
+function openAddExerciseModal() {
+  editingExerciseIndex = -1;
+  document.getElementById('modal-title-text').innerText = "Add Exercise (Workout " + currentWorkoutKey() + ")";
+  document.getElementById('modal-ex-name').value = ""; document.getElementById('modal-ex-sets').value = "4"; document.getElementById('modal-ex-reps').value = "8 reps";
+  document.getElementById('exercise-modal').style.display = "flex";
+}
+function openEditExerciseModal(i) {
+  const ex = getWorkoutData(currentWorkoutKey()).exercises[i]; if (!ex) return;
+  editingExerciseIndex = i;
+  document.getElementById('modal-title-text').innerText = "Edit Exercise";
+  document.getElementById('modal-ex-name').value = ex.name; document.getElementById('modal-ex-sets').value = ex.sets; document.getElementById('modal-ex-reps').value = ex.reps;
+  document.getElementById('exercise-modal').style.display = "flex";
+}
+function closeExerciseModal() { document.getElementById('exercise-modal').style.display = "none"; }
+function saveExerciseFromModal() {
+  const name = document.getElementById('modal-ex-name').value.trim();
+  const sets = parseInt(document.getElementById('modal-ex-sets').value) || 3;
+  const reps = document.getElementById('modal-ex-reps').value.trim() || "8 reps";
+  if (!name) { alert("Please enter an exercise name"); return; }
+  const k = currentWorkoutKey(), w = getWorkoutData(k);
+  if (editingExerciseIndex === -1) w.exercises.push({ name, sets, reps }); else w.exercises[editingExerciseIndex] = { name, sets, reps };
+  saveWorkoutData(k, w); closeExerciseModal();
+}
+function deleteExercise(i) {
+  const k = currentWorkoutKey(), w = getWorkoutData(k), ex = w.exercises[i]; if (!ex) return;
+  if (confirm("Remove '" + ex.name + "' from " + w.name + "?")) { w.exercises.splice(i, 1); saveWorkoutData(k, w); }
+}
+function slug(n) { return n.replace(/[^a-zA-Z0-9]/g, '_').toLowerCase(); }
+function renderWorkout() {
+  const container = document.getElementById('workout-container'); if (!container) return;
+  const a = document.activeElement;
+  if (a && a.classList && a.classList.contains('log-input') && container.contains(a)) return; // don't steal focus while typing
+  const k = currentWorkoutKey(), w = getWorkoutData(k), ref = prevRef();
+  let h = '<div class="card-title"><div><span>' + esc(w.name) + '</span><span style="font-size:.75rem;color:var(--muted);display:block;font-weight:normal;margin-top:4px">Week ' + currentWeek + ': solid form & strict rest' + (ref ? ' · grey hints = last time' : '') + '</span></div></div>';
+  w.exercises.forEach((ex, i) => {
+    const sl = slug(ex.name); let last = [], rows = '';
+    for (let s = 1; s <= ex.sets; s++) {
+      const id = sl + "_s" + s, wt = getData(K("w", currentWeek, id + "_wt")), rp = getData(K("w", currentWeek, id + "_rp")), done = getData(K("w", currentWeek, id + "_done")) === '1';
+      const pw = ref ? getData(K("w", ref.week, id + "_wt", ref.cid)) : '', pr = ref ? getData(K("w", ref.week, id + "_rp", ref.cid)) : '';
+      if (pw || pr) last.push((pw || '?') + '×' + (pr || '?'));
+      rows += '<div class="set-row"><span class="set-num">Set ' + s + '</span>' +
+        '<input type="text" inputmode="decimal" class="log-input" placeholder="' + esc(pw || 'kg') + '" value="' + esc(wt) + '" onchange="syncData(\'' + K("w", currentWeek, id + "_wt") + '\',this.value)">' +
+        '<input type="text" inputmode="numeric" class="log-input" placeholder="' + esc(pr || 'reps') + '" value="' + esc(rp) + '" onchange="syncData(\'' + K("w", currentWeek, id + "_rp") + '\',this.value)">' +
+        '<button class="set-check ' + (done ? 'done' : '') + '" onclick="toggleSet(\'' + K("w", currentWeek, id + "_done") + '\')">✓</button></div>';
+    }
+    h += '<div class="exercise-box"><div class="ex-header"><div class="ex-title-wrap"><span class="ex-name">' + esc(ex.name) + '</span><span class="ex-meta">' + ex.sets + ' × ' + esc(ex.reps) + '</span>' +
+      (last.length ? '<span class="ex-last">Last time: ' + esc(last.join(', ')) + '</span>' : '') + '</div><div class="action-group">' +
+      (i > 0 ? '<button type="button" class="icon-btn" onclick="moveExercise(' + i + ',-1)">▲</button>' : '') +
+      (i < w.exercises.length - 1 ? '<button type="button" class="icon-btn" onclick="moveExercise(' + i + ',1)">▼</button>' : '') +
+      '<button type="button" class="icon-btn" onclick="openEditExerciseModal(' + i + ')">✏️</button><button type="button" class="icon-btn" onclick="deleteExercise(' + i + ')">✕</button></div></div>' + rows + '</div>';
+  });
+  container.innerHTML = h;
+}
+function toggleSet(key) {
+  const done = getData(key) === '1'; syncData(key, done ? '0' : '1');
+  if (!done) { setTimer(90); if (!timerRunning) toggleTimer(); }
+  renderWorkout();
+}
+
+// ---------- Timer ----------
+function setTimer(s) { timerSeconds = s; updateTimerDisplay(); }
+function updateTimerDisplay() { document.getElementById('time-left').innerText = String(Math.floor(timerSeconds / 60)).padStart(2, '0') + ":" + String(timerSeconds % 60).padStart(2, '0'); }
+function toggleTimer() {
+  const btn = document.getElementById('timer-toggle-btn');
+  if (timerRunning) { clearInterval(timerInterval); timerRunning = false; btn.innerText = "Start"; btn.classList.add('start'); return; }
+  timerRunning = true; btn.innerText = "Pause"; btn.classList.remove('start');
+  timerInterval = setInterval(() => {
+    if (timerSeconds > 0) { timerSeconds--; updateTimerDisplay(); }
+    else { clearInterval(timerInterval); timerRunning = false; btn.innerText = "Start"; btn.classList.add('start'); if (navigator.vibrate) navigator.vibrate([200, 100, 200]); }
+  }, 1000);
+}
+
+// ---------- WhatsApp share ----------
+function shareSingleWorkout(s) {
+  flushNotes();
+  const strength = s === 'strength' || s === 'fri', dayKey = strength ? 'fri' : s;
+  const act = getActivityData(dayKey), nk = strength ? 'strength' : s;
+  const title = strength ? "🏋️ " + act.title + " (Workout " + currentWorkoutKey() + ")" : icons[s] + " " + act.title;
+  const rpe = parseInt(getData(K("rpe", currentWeek, nk)) || 0), cn = getData(K("note", currentWeek, nk)), co = getData(K("coach_note", currentWeek, nk));
+  let msg = "*" + title + " - Week " + currentWeek + " (" + fmt(getComputedDate(currentWeek, dayKey)) + ")*\n\n";
+  if (!strength) msg += "Status: " + (getData(K("session", currentWeek, s)) === '1' ? "✅ Completed" : "⬜ Logged") + "\n";
+  if (rpe > 0) msg += "⚡ RPE: " + rpeLevels[rpe - 1] + "\n";
+  if (cn) msg += "\n📝 *Client Notes / Questions:*\n" + cn + "\n";
+  if (co) msg += "\n🎯 *Coach Notes / Directives:*\n" + co + "\n";
+  if (strength) {
+    msg += "\n📊 *Logged Exercises:*\n"; let n = 0;
+    getWorkoutData(currentWorkoutKey()).exercises.forEach(ex => {
+      const sets = [];
+      for (let i = 1; i <= ex.sets; i++) {
+        const wt = getData(K("w", currentWeek, slug(ex.name) + "_s" + i + "_wt")), rp = getData(K("w", currentWeek, slug(ex.name) + "_s" + i + "_rp"));
+        if (wt || rp) sets.push("Set " + i + ": " + (wt ? wt + 'kg' : '') + (rp ? ' x ' + rp + ' reps' : ''));
+      }
+      if (sets.length) { n++; msg += "• *" + ex.name + "*\n   " + sets.join(", ") + "\n"; }
     });
-    updateUI();
+    if (!n) msg += "_(No exercise weights logged yet)_\n";
   }
+  window.open("https://wa.me/" + COACH_PHONE_NUMBER + "?text=" + encodeURIComponent(msg), "_blank");
+}
 
-  function toggleSession(day) {
-    const key = "session_" + currentWeek + "_" + day;
-    const current = getData(key) === '1';
-    syncData(key, current ? '0' : '1');
-    updateUI();
-  }
-
-  function saveNote(session, val) {
-    syncData("note_" + currentWeek + "_" + session, val);
-    updateDrawerDot(session);
-  }
-
-  function saveCoachNote(session, val) {
-    syncData("coach_note_" + currentWeek + "_" + session, val);
-    updateDrawerDot(session);
-  }
-
-  function updateDrawerDot(session) {
-    const dot = document.getElementById("dot-" + session);
-    if (!dot) return;
-    const n = getData("note_" + currentWeek + "_" + session);
-    const cn = getData("coach_note_" + currentWeek + "_" + session);
-    const rpe = parseInt(getData("rpe_" + currentWeek + "_" + session) || 0);
-    dot.style.display = (n || cn || rpe > 0) ? "inline-block" : "none";
-  }
-
-  const rpeLevels = [
-    { val: 1, label: "1 - 😃 Very Easy / Recovery" },
-    { val: 2, label: "2 - 😊 Easy / Warmup pace" },
-    { val: 3, label: "3 - 🙂 Light Effort" },
-    { val: 4, label: "4 - Moderate / Comfortable" },
-    { val: 5, label: "5 - 😐 Noticeable Effort" },
-    { val: 6, label: "6 - Steady / Challenging" },
-    { val: 7, label: "7 - 😤 Vigorous / ~3 reps left" },
-    { val: 8, label: "8 - 😫 Heavy / ~2 reps left" },
-    { val: 9, label: "9 - 🥵 Very Hard / ~1 rep left" },
-    { val: 10, label: "10 - 💀 Maximum Effort / Failure" }
-  ];
-
-  function renderRpeChips(sessionKey) {
-    const container = document.getElementById("rpe-chips-" + sessionKey);
-    const labelEl = document.getElementById("rpe-label-" + sessionKey);
-    if (!container) return;
-
-    const currentVal = parseInt(getData("rpe_" + currentWeek + "_" + sessionKey) || 0);
-
-    let html = '';
-    for (let i = 1; i <= 10; i++) {
-      html += '<button type="button" class="rpe-chip ' + (currentVal === i ? 'selected' : '') + '" onclick="toggleRpe(\'' + sessionKey + '\', ' + i + ')">' + i + '</button>';
-    }
-    container.innerHTML = html;
-
-    if (labelEl) {
-      if (currentVal > 0) {
-        const item = rpeLevels.find(r => r.val === currentVal);
-        labelEl.innerText = item ? item.label : "RPE " + currentVal;
-      } else {
-        labelEl.innerText = "Tap 1-10 to rate";
-      }
-    }
-  }
-
-  function toggleRpe(sessionKey, val) {
-    const currentVal = parseInt(getData("rpe_" + currentWeek + "_" + sessionKey) || 0);
-    if (currentVal === val) {
-      syncData("rpe_" + currentWeek + "_" + sessionKey, 0);
-    } else {
-      syncData("rpe_" + currentWeek + "_" + sessionKey, val);
-    }
-    renderRpeChips(sessionKey);
-    updateDrawerDot(sessionKey);
-  }
-
-  function clearRpe(sessionKey) {
-    syncData("rpe_" + currentWeek + "_" + sessionKey, 0);
-    renderRpeChips(sessionKey);
-    updateDrawerDot(sessionKey);
-  }
-
-  // ================= DATE HELPERS =================
-  function getComputedDate(weekNumber, dayKey) {
-    const base = new Date(PROGRAM_START_DATE + "T00:00:00");
-    const daysToAdd = ((weekNumber - 1) * 7) + dayOffsetMap[dayKey];
-    base.setDate(base.getDate() + daysToAdd);
-    return base;
-  }
-
-  function formatDateBadge(d) {
-    return d.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' }); // e.g. "2 Nov"
-  }
-
-  function isSameDay(d1, d2) {
-    return d1.getFullYear() === d2.getFullYear() &&
-           d1.getMonth() === d2.getMonth() &&
-           d1.getDate() === d2.getDate();
-  }
-
-  function updateUI() {
-    const isWorkoutA = (currentWeek % 2 !== 0);
-    const today = new Date();
-
-    // Compute Date Range for Current Week
-    const monDate = getComputedDate(currentWeek, 'mon');
-    const sunDate = getComputedDate(currentWeek, 'sun');
-    const rangeEl = document.getElementById("week-date-range");
-    if (rangeEl) {
-      rangeEl.innerText = formatDateBadge(monDate) + " – " + formatDateBadge(sunDate);
-    }
-
-    // Update Day Titles, Dates & Tags
-    dayKeys.forEach(day => {
-      const isDone = getData("session_" + currentWeek + "_" + day) === '1';
-      const btn = document.getElementById("btn-" + day);
-      if (btn) btn.classList.toggle('done', isDone);
-
-      const titleEl = document.getElementById("title-" + day);
-      const subEl = document.getElementById("sub-" + day);
-      const shareBtn = document.getElementById("share-btn-" + day);
-      const dateEl = document.getElementById("date-" + day);
-      const todayPill = document.getElementById("today-" + day);
-      const cardEl = document.getElementById("card-" + day);
-
-      const dayDate = getComputedDate(currentWeek, day);
-      if (dateEl) dateEl.innerText = formatDateBadge(dayDate);
-
-      const isCurrentDay = isSameDay(today, dayDate);
-      if (todayPill) todayPill.style.display = isCurrentDay ? 'inline-block' : 'none';
-      if (cardEl) cardEl.classList.toggle('is-today', isCurrentDay);
-
-      const act = getActivityData(day);
-
-      if (day === 'fri') {
-        if (currentWeek === 4) {
-          if (titleEl) titleEl.innerText = act.title + " (Workout B)";
-          if (subEl) subEl.innerText = "⭐ 1-on-1 In-Person Check-In with PT";
-        } else {
-          if (titleEl) titleEl.innerText = act.title + " (" + (isWorkoutA ? "Workout A" : "Workout B") + ")";
-          if (subEl) subEl.innerText = act.sub;
-        }
-      } else {
-        if (titleEl) titleEl.innerText = act.title;
-        if (subEl) subEl.innerText = act.sub;
-      }
-
-      if (shareBtn) {
-        shareBtn.innerText = "💬 Share " + act.title + " with Coach";
-      }
-    });
-
-    // Populate notes & coach notes
-    ['mon', 'tue', 'wed', 'thu', 'sat', 'sun', 'strength'].forEach(session => {
-      const noteEl = document.getElementById("notes-" + session);
-      if (noteEl && document.activeElement !== noteEl) {
-        noteEl.value = getData("note_" + currentWeek + "_" + session);
-      }
-      const coachEl = document.getElementById("coach-notes-" + session);
-      if (coachEl && document.activeElement !== coachEl) {
-        coachEl.value = getData("coach_note_" + currentWeek + "_" + session);
-      }
-      renderRpeChips(session);
-      updateDrawerDot(session);
-    });
-
-    let doneCount = 0;
-    ['mon', 'wed', 'fri', 'sat'].forEach(d => {
-      if (getData("session_" + currentWeek + "_" + d) === '1') doneCount++;
-    });
-    const statEl = document.getElementById('completion-stat');
-    if (statEl) statEl.innerText = doneCount + "/4 Core Done";
-
-    renderWorkout();
-  }
-
-  function moveExercise(workoutKey, index, direction) {
-    const workout = getWorkoutData(workoutKey);
-    const list = [...workout.exercises];
-    const target = index + direction;
-    if (target < 0 || target >= list.length) return;
-
-    const temp = list[index];
-    list[index] = list[target];
-    list[target] = temp;
-
-    workout.exercises = list;
-    saveWorkoutData(workoutKey, workout);
-  }
-
-  function openAddExerciseModal() {
-    const isWorkoutA = (currentWeek % 2 !== 0);
-    const workoutKey = isWorkoutA ? 'A' : 'B';
-    editingExerciseIndex = -1;
-    document.getElementById('modal-title-text').innerText = "Add Exercise (" + (workoutKey === 'A' ? "Workout A" : "Workout B") + ")";
-    document.getElementById('modal-ex-name').value = "";
-    document.getElementById('modal-ex-sets').value = "4";
-    document.getElementById('modal-ex-reps').value = "8 reps";
-    document.getElementById('exercise-modal').style.display = "flex";
-  }
-
-  function openEditExerciseModal(index) {
-    const isWorkoutA = (currentWeek % 2 !== 0);
-    const workoutKey = isWorkoutA ? 'A' : 'B';
-    const workout = getWorkoutData(workoutKey);
-    const ex = workout.exercises[index];
-    if (!ex) return;
-
-    editingExerciseIndex = index;
-    document.getElementById('modal-title-text').innerText = "Edit Exercise";
-    document.getElementById('modal-ex-name').value = ex.name;
-    document.getElementById('modal-ex-sets').value = ex.sets;
-    document.getElementById('modal-ex-reps').value = ex.reps;
-    document.getElementById('exercise-modal').style.display = "flex";
-  }
-
-  function closeExerciseModal() {
-    document.getElementById('exercise-modal').style.display = "none";
-  }
-
-  function saveExerciseFromModal() {
-    const name = document.getElementById('modal-ex-name').value.trim();
-    const sets = parseInt(document.getElementById('modal-ex-sets').value) || 3;
-    const reps = document.getElementById('modal-ex-reps').value.trim() || "8 reps";
-
-    if (!name) {
-      alert("Please enter an exercise name");
-      return;
-    }
-
-    const isWorkoutA = (currentWeek % 2 !== 0);
-    const workoutKey = isWorkoutA ? 'A' : 'B';
-    const workout = getWorkoutData(workoutKey);
-
-    if (editingExerciseIndex === -1) {
-      workout.exercises.push({ name, sets, reps });
-    } else {
-      workout.exercises[editingExerciseIndex] = { name, sets, reps };
-    }
-
-    saveWorkoutData(workoutKey, workout);
-    closeExerciseModal();
-  }
-
-  function deleteExercise(index) {
-    const isWorkoutA = (currentWeek % 2 !== 0);
-    const workoutKey = isWorkoutA ? 'A' : 'B';
-    const workout = getWorkoutData(workoutKey);
-    const ex = workout.exercises[index];
-    if (!ex) return;
-
-    if (confirm("Are you sure you want to remove '" + ex.name + "' from " + workout.name + "?")) {
-      workout.exercises.splice(index, 1);
-      saveWorkoutData(workoutKey, workout);
-    }
-  }
-
-  function renderWorkout() {
-    const isWorkoutA = (currentWeek % 2 !== 0);
-    const workoutKey = isWorkoutA ? 'A' : 'B';
-    const workout = getWorkoutData(workoutKey);
-    const container = document.getElementById('workout-container');
-    if (!container) return;
-
-    let html = '<div class="card-title"><div>' +
-      '<span>' + workout.name + '</span>' +
-      '<span style="font-size:0.75rem; color:var(--text-muted); display:block; font-weight:normal; margin-top:4px;">' +
-      'Week ' + currentWeek + ': Focus on solid form & strict rest' +
-      '</span></div></div>';
-
-    workout.exercises.forEach((ex, exIdx) => {
-      const exSlug = ex.name.replace(/[^a-zA-Z0-9]/g, '_').toLowerCase();
-
-      html += '<div class="exercise-box">' +
-        '<div class="ex-header">' +
-          '<div class="ex-title-wrap">' +
-            '<span class="ex-name">' + ex.name + '</span>' +
-            '<span class="ex-meta">' + ex.sets + ' × ' + ex.reps + '</span>' +
-          '</div>' +
-          '<div class="action-group">' +
-            (exIdx > 0 ? '<button type="button" title="Move Up" class="icon-btn" onclick="moveExercise(\'' + workoutKey + '\', ' + exIdx + ', -1)">▲</button>' : '') +
-            (exIdx < workout.exercises.length - 1 ? '<button type="button" title="Move Down" class="icon-btn" onclick="moveExercise(\'' + workoutKey + '\', ' + exIdx + ', 1)">▼</button>' : '') +
-            '<button type="button" title="Edit Exercise" class="icon-btn edit" onclick="openEditExerciseModal(' + exIdx + ')">✏️</button>' +
-            '<button type="button" title="Remove Exercise" class="icon-btn delete" onclick="deleteExercise(' + exIdx + ')">✕</button>' +
-          '</div>' +
-        '</div>';
-
-      for (let s = 1; s <= ex.sets; s++) {
-        const wtKey = "w_" + currentWeek + "_" + exSlug + "_s" + s + "_wt";
-        const rpKey = "w_" + currentWeek + "_" + exSlug + "_s" + s + "_rp";
-        const doneKey = "w_" + currentWeek + "_" + exSlug + "_s" + s + "_done";
-
-        const savedWeight = getData(wtKey);
-        const savedRep = getData(rpKey);
-        const isDone = getData(doneKey) === '1';
-
-        html += '<div class="set-row">' +
-          '<span class="set-num">Set ' + s + '</span>' +
-          '<input type="text" class="log-input" placeholder="kg" value="' + savedWeight + '" onchange="syncData(\'' + wtKey + '\', this.value)">' +
-          '<input type="text" class="log-input" placeholder="reps" value="' + savedRep + '" onchange="syncData(\'' + rpKey + '\', this.value)">' +
-          '<button class="set-check ' + (isDone ? 'done' : '') + '" onclick="toggleSet(\'' + doneKey + '\', this)">✓</button>' +
-          '</div>';
-      }
-      html += '</div>';
-    });
-
-    container.innerHTML = html;
-  }
-
-  function toggleSet(key, btn) {
-    const isDone = getData(key) === '1';
-    syncData(key, isDone ? '0' : '1');
-    if (!isDone) {
-      setTimer(90);
-      if (!timerRunning) toggleTimer();
-    }
-    updateUI();
-  }
-
-  function setTimer(secs) {
-    timerSeconds = secs;
-    updateTimerDisplay();
-  }
-
-  function updateTimerDisplay() {
-    const m = Math.floor(timerSeconds / 60).toString().padStart(2, '0');
-    const s = (timerSeconds % 60).toString().padStart(2, '0');
-    const el = document.getElementById('time-left');
-    if (el) el.innerText = m + ":" + s;
-  }
-
-  function toggleTimer() {
-    const btn = document.getElementById('timer-toggle-btn');
-    if (timerRunning) {
-      clearInterval(timerInterval);
-      timerRunning = false;
-      if (btn) { btn.innerText = "Start"; btn.classList.add('start'); }
-    } else {
-      timerRunning = true;
-      if (btn) { btn.innerText = "Pause"; btn.classList.remove('start'); }
-      timerInterval = setInterval(() => {
-        if (timerSeconds > 0) {
-          timerSeconds--;
-          updateTimerDisplay();
-        } else {
-          clearInterval(timerInterval);
-          timerRunning = false;
-          if (btn) { btn.innerText = "Start"; btn.classList.add('start'); }
-          if (navigator.vibrate) navigator.vibrate([200, 100, 200]);
-        }
-      }, 1000);
-    }
-  }
-
-  function shareSingleWorkout(sessionKey) {
-    let isStrength = (sessionKey === 'strength' || sessionKey === 'fri');
-    let title = "";
-    const dayDate = sessionKey === 'strength' ? getComputedDate(currentWeek, 'fri') : getComputedDate(currentWeek, sessionKey);
-    const dateStr = formatDateBadge(dayDate);
-
-    if (isStrength) {
-      const isWorkoutA = (currentWeek % 2 !== 0);
-      const act = getActivityData('fri');
-      title = "🏋️ " + act.title + " (" + (isWorkoutA ? "Workout A" : "Workout B") + ")";
-    } else {
-      const act = getActivityData(sessionKey);
-      const icons = { mon: "🥊", tue: "🧘", wed: "🏃", thu: "🛌", sat: "🏃", sun: "🛌" };
-      title = (icons[sessionKey] || "⚡") + " " + act.title;
-    }
-
-    const clientNote = getData("note_" + currentWeek + "_" + sessionKey);
-    const coachNote = getData("coach_note_" + currentWeek + "_" + sessionKey);
-    const rpeVal = getData("rpe_" + currentWeek + "_" + sessionKey);
-    const rpeObj = rpeLevels.find(r => r.val === parseInt(rpeVal));
-
-    let msg = "*" + title + " - Week " + currentWeek + " (" + dateStr + ")*\n\n";
-    
-    if (!isStrength) {
-      const isDone = getData("session_" + currentWeek + "_" + sessionKey) === '1';
-      msg += "Status: " + (isDone ? "✅ Completed / Checked" : "⬜ Logged") + "\n";
-    }
-
-    if (rpeVal && parseInt(rpeVal) > 0) {
-      msg += "⚡ RPE Effort / Strain: " + (rpeObj ? rpeObj.label : rpeVal + "/10") + "\n";
-    }
-
-    if (clientNote) {
-      msg += "\n📝 *Client Notes / Questions:*\n" + clientNote + "\n";
-    }
-
-    if (coachNote) {
-      msg += "\n🎯 *Coach Notes / Directives:*\n" + coachNote + "\n";
-    }
-
-    if (isStrength) {
-      const isWorkoutA = (currentWeek % 2 !== 0);
-      const workoutKey = isWorkoutA ? 'A' : 'B';
-      const workout = getWorkoutData(workoutKey);
-      
-      msg += "\n📊 *Logged Exercises:*\n";
-      let loggedCount = 0;
-      workout.exercises.forEach(ex => {
-        const exSlug = ex.name.replace(/[^a-zA-Z0-9]/g, '_').toLowerCase();
-        let setsLogged = [];
-        for (let s = 1; s <= ex.sets; s++) {
-          const wt = getData("w_" + currentWeek + "_" + exSlug + "_s" + s + "_wt");
-          const rp = getData("w_" + currentWeek + "_" + exSlug + "_s" + s + "_rp");
-          if (wt || rp) {
-            setsLogged.push("Set " + s + ": " + (wt ? wt + 'kg' : '') + (rp ? ' x ' + rp + ' reps' : ''));
-          }
-        }
-        if (setsLogged.length > 0) {
-          loggedCount++;
-          msg += "• *" + ex.name + "*\n   " + setsLogged.join(", ") + "\n";
-        }
-      });
-      if (loggedCount === 0) {
-        msg += "_(No exercise weights logged yet)_\n";
-      }
-    }
-
-    window.open("https://wa.me/" + COACH_PHONE_NUMBER + "?text=" + encodeURIComponent(msg), "_blank");
-  }
-
-  setWeek(1);
+// ---------- Start ----------
+buildDays();
+pickCurrentPosition();
+updateUI();
 </script>
 </body>
 </html>
